@@ -1,4 +1,4 @@
-# Unit / typecheck / architecture lint for Auth, Memo, Web, and shared api-client.
+# Unit / typecheck / size lint for Auth, Memo, Web, and shared api-client.
 # Mutation (StrykerJS) runs in a separate workflow: .github/workflows/mutation.yml
 name: Test
 
@@ -15,18 +15,20 @@ permissions:
   contents: read
 
 jobs:
-  architecture-lint:
-    name: Architecture lint (handler/usecase single-export)
+  size-lint:
+    name: Size lint (ESLint max-lines)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
+      - uses: actions/setup-node@v4
         with:
-          deno-version: v2.x
-      - name: Lint layered architecture
-        run: deno run -A --config tools/architecture-lint/deno.json tools/architecture-lint/run.ts
-      - name: Architecture lint unit tests
-        run: deno test -A --config tools/architecture-lint/deno.json tools/architecture-lint/
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Lint fat files / functions
+        run: npm run lint:size
 
   auth:
     name: Auth (Deno tests)

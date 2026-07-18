@@ -7,7 +7,7 @@
     "dev": "deno run -A --watch src/main.ts",
     "test": "deno test -A tests/",
     "check": "deno check src/main.ts",
-    "lint:architecture": "deno run -A --config ../../tools/architecture-lint/deno.json ../../tools/architecture-lint/run.ts --service memo"
+    "lint:size": "npm --prefix ../.. run lint:size -- services/memo/src"
   },
   "imports": {
     "postgres": "npm:postgres@3.4.5",

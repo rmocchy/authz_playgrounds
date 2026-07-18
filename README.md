@@ -43,15 +43,14 @@ docker compose up --build
 
 CI:
 
-- Unit / architecture lint: [`.github/workflows/test.yml`](.github/workflows/test.yml) — PR / `main` で Auth・Memo・api-client・Web の typecheck / test / build と architecture lint
+- Unit / size lint: [`.github/workflows/test.yml`](.github/workflows/test.yml) — PR / `main` で Auth・Memo・api-client・Web の typecheck / test / build と ESLint サイズ検査
 - Mutation: [`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) — StrykerJS で mutation score を Job Summary / artifact 化
 
 `docker compose build` はイメージ取得が重いため CI では回さず、手元確認とする（手順: [`docs/local-setup.md`](docs/local-setup.md)）。
 
 ```bash
-# レイヤ構成 + handler/usecase 1ファイル1責務（TypeScript Compiler API + @std）
-npm run lint:architecture
-# または: deno run -A --config tools/architecture-lint/deno.json tools/architecture-lint/run.ts
+# ファイル・関数の肥大防止（ESLint max-lines / max-lines-per-function）
+npm run lint:size
 
 # Auth / Memo 単体（各サービスディレクトリ）
 cd services/auth && deno task test
@@ -89,7 +88,7 @@ cd services/auth && npm run mutate:http
 | `infra/` | compose 補助（Postgres init 等） |
 | `docs/` | 学習メモ・実装後の解説 |
 | `projects/` | 企画・設計（Design Doc） |
-| `tools/` | `generate.sh`（TypeSpec）、`architecture-lint/`、`ci/`（mutation 集計） |
+| `tools/` | `generate.sh`（TypeSpec）、`ci/`（mutation 集計） |
 
 エージェント向けルール: [`AGENTS.md`](AGENTS.md)
 

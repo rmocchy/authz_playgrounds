@@ -6,13 +6,16 @@
   "scripts": {
     "generate": "bash tools/generate.sh",
     "tsp:compile": "tsp compile specs --config specs/tspconfig.yaml",
-    "lint:architecture": "deno run -A --config tools/architecture-lint/deno.json tools/architecture-lint/run.ts",
-    "test:architecture-lint": "deno test -A --config tools/architecture-lint/deno.json tools/architecture-lint/"
+    "lint:size": "eslint services/auth/src services/memo/src",
+    "lint:architecture": "npm run lint:size"
   },
   "devDependencies": {
     "@typespec/compiler": "^1.14.0",
     "@typespec/http": "^1.14.0",
     "@typespec/openapi": "^1.14.0",
-    "@typespec/openapi3": "^1.14.0"
+    "@typespec/openapi3": "^1.14.0",
+    "eslint": "^9.39.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.57.0"
   }
 }

@@ -1,7 +1,7 @@
 /**
  * Shared request-body parsing for loginId + password credentials.
  * Lives under http/ (not handler/) so both register and login handlers
- * can share it without violating single-export-per-handler.
+ * can share it without bloating individual handlers.
  */
 import {
   isValidLoginId,

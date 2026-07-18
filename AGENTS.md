@@ -24,4 +24,4 @@
 - サーバー数増でコードベースが肥大しないよう、共有は `pkg/`、サービス固有は `services/` に閉じる
 - README のコピーではなく、行動可能な指示を優先する
 - 細則・例外・手順の詳細は `.grok/rules/` に従う
-- BE（auth / memo）は `handler` / `usecase` / `domain` / `repository` に分ける。handler・usecase は **1 ファイル 1 責務**（`tools/architecture-lint` で検査）
+- BE（auth / memo）は `handler` / `usecase` / `domain` / `repository` に分ける。handler・usecase は薄く保ち、**肥大化は ESLint `max-lines` で検査**（`npm run lint:size`）
