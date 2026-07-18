@@ -95,15 +95,16 @@ services:
 
   web:
     build:
-      context: ./services/web
-      dockerfile: Dockerfile
+      # Repo root so Dockerfile can COPY pkg/api-client
+      context: .
+      dockerfile: services/web/Dockerfile
     container_name: authz-web
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-5173}:5173"
     environment:
       PORT: "5173"
-      # Compose-network hostnames + fixed internal ports (Vite proxy once FE lands)
+      # Compose-network hostnames + fixed internal ports (Vite proxy)
       AUTH_PROXY_TARGET: http://auth:3001
       MEMO_PROXY_TARGET: http://memo:3002
     depends_on:
