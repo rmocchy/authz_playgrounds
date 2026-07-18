@@ -1,0 +1,21 @@
+{
+  "name": "@authz/architecture-lint",
+  "version": "0.1.0",
+  "exports": "./run.ts",
+  "tasks": {
+    "lint": "deno run -A run.ts",
+    "test": "deno test -A ."
+  },
+  "imports": {
+    "@std/assert": "jsr:@std/assert@1",
+    "@std/cli": "jsr:@std/cli@1",
+    "@std/fs": "jsr:@std/fs@1",
+    "@std/path": "jsr:@std/path@1",
+    "typescript": "npm:typescript@5.8.3"
+  },
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["deno.window"]
+  }
+}

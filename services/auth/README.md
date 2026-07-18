@@ -31,9 +31,22 @@ user is missing) so response timing does not leak whether `loginId` exists.
 SafeQL + ESLint is not wired for Deno in this playground yet. Queries use **postgres.js** with:
 
 - parameterized tagged templates
-- explicit TypeScript row interfaces in `src/db/*.ts`
+- explicit TypeScript row interfaces in `src/repository/*.ts`
 
-If SafeQL becomes feasible later, replace the repository implementations without changing route contracts.
+If SafeQL becomes feasible later, replace the repository implementations without changing handler contracts.
+
+## Layout
+
+```
+src/
+  handler/      # one HTTP entry per file (handleRegister, handleLogin, …)
+  usecase/      # one use case per file (register, login, …)
+  domain/       # pure types / rules
+  repository/   # Postgres + in-memory test doubles
+  http/         # cookies, errors, shared request parsing
+```
+
+Enforced by `tools/architecture-lint` (see root `npm run lint:architecture`).
 
 ## Env
 

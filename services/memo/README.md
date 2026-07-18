@@ -49,9 +49,23 @@ All `/v1/memos*` routes require a valid session cookie → **401** if missing/in
 | `is_secure` | API field `secure` |
 | `created_at` / `updated_at` | TIMESTAMPTZ |
 
+## Layout
+
+```
+src/
+  handler/      # one HTTP entry per file (handleList, handleCreate, …)
+  usecase/      # one use case per file (listMemos, createMemo, …)
+  domain/       # pure types / authz matrix / input parsing
+  repository/   # Postgres + in-memory test doubles
+  clients/      # Auth session client (not own DB)
+  http/         # errors, shared JSON body helper
+```
+
+Enforced by `tools/architecture-lint` (see root `npm run lint:architecture`).
+
 ## SafeQL / SQL
 
-Same as Auth: **postgres.js** + parameterized queries + explicit row types. SafeQL is not wired for Deno yet.
+Same as Auth: **postgres.js** + parameterized queries + explicit row types in `src/repository/*.ts`. SafeQL is not wired for Deno yet.
 
 ## Env
 

@@ -2,21 +2,18 @@
  * HTTP router for Auth service (fetch handler).
  * Separated from main.ts so tests can drive the app without binding a port.
  */
-import type { AuthRouteDeps } from "./routes/auth.ts";
-import {
-  handleLogin,
-  handleLogout,
-  handleRegister,
-} from "./routes/auth.ts";
-import {
-  handleMe,
-  type SessionRouteDeps,
-} from "./routes/sessions.ts";
+import type { AppDeps } from "./deps.ts";
+import { handleLogin } from "./handler/login.ts";
+import { handleLogout } from "./handler/logout.ts";
+import { handleMe } from "./handler/me.ts";
+import { handleRegister } from "./handler/register.ts";
 import { jsonError } from "./http/errors.ts";
 
-export type AppDeps = AuthRouteDeps & SessionRouteDeps;
+export type { AppDeps };
 
-export function createHandler(deps: AppDeps): (req: Request) => Promise<Response> {
+export function createHandler(
+  deps: AppDeps,
+): (req: Request) => Promise<Response> {
   return async (req: Request): Promise<Response> => {
     try {
       const url = new URL(req.url);

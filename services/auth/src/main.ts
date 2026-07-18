@@ -3,9 +3,9 @@
  * Listens on PORT (default 3001), runs migrations, optional seed user.
  */
 import { loadEnv } from "./env.ts";
-import { closeSql, createSql, runMigrations } from "./db/client.ts";
-import { createUserRepository } from "./db/users.ts";
-import { createSessionRepository } from "./db/sessions.ts";
+import { closeSql, createSql, runMigrations } from "./repository/client.ts";
+import { createUserRepository } from "./repository/users.ts";
+import { createSessionRepository } from "./repository/sessions.ts";
 import { createHandler } from "./app.ts";
 import { hashPassword } from "./domain/password.ts";
 

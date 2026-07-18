@@ -1,5 +1,5 @@
 -- Auth DB schema: users + sessions
--- Applied on service startup (see src/db/client.ts migrate).
+-- Applied on service startup (see src/repository/client.ts migrate).
 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY,

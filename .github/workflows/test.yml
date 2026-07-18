@@ -15,6 +15,19 @@ permissions:
   contents: read
 
 jobs:
+  architecture-lint:
+    name: Architecture lint (handler/usecase single-export)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Lint layered architecture
+        run: deno run -A --config tools/architecture-lint/deno.json tools/architecture-lint/run.ts
+      - name: Architecture lint unit tests
+        run: deno test -A --config tools/architecture-lint/deno.json tools/architecture-lint/
+
   auth:
     name: Auth (Deno tests)
     runs-on: ubuntu-latest
