@@ -39,7 +39,8 @@ Auth / Memo の Dockerfile は `denoland/deno:2.9.2` を使用する。これよ
 
 ## 1. Docker Compose（推奨・一括起動）
 
-イメージのビルドと 4 サービス起動をまとめて行う。CI の `docker-build` job は `docker compose build` と同等。
+イメージのビルドと 4 サービス起動をまとめて行う。  
+`docker compose build` は計算・転送コストが高いため **CI では実行せず**、手元で確認する。
 
 ### 1.1 環境変数
 
@@ -70,7 +71,7 @@ SEED_PASSWORD=changeme
 ### 1.2 ビルドと起動
 
 ```bash
-# イメージだけ確認（CI の docker-build と同等）
+# イメージだけ確認（任意）
 docker compose build
 
 # フォアグラウンド
@@ -249,6 +250,6 @@ npm run dev
 | 目的 | 推奨 |
 |------|------|
 | まず一通り動かす / 受け入れ確認 | **Docker Compose 一括** |
-| CI と同等のイメージ検証 | `docker compose build` |
+| イメージだけ手元で検証 | `docker compose build` |
 | 単一サービスのコードを頻繁に直す | **ローカル起動**（DB だけ Compose） |
 | Cookie / proxy の挙動確認 | どちらでも可。ブラウザは常に :5173 |

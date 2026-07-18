@@ -41,19 +41,8 @@ docker compose up --build
 
 ## テスト
 
-CI: [`.github/workflows/test.yml`](.github/workflows/test.yml) が PR / `main` で次を実行する。
-
-| Job | 内容 |
-|-----|------|
-| `auth` / `memo` / `api-client` | Deno typecheck + test |
-| `web` | npm typecheck + production build |
-| **`docker-build`** | `docker compose build`（Auth / Memo / Web の Dockerfile が通ること） |
-
-ローカルでも同じ build を先に確認できる:
-
-```bash
-docker compose build
-```
+CI: [`.github/workflows/test.yml`](.github/workflows/test.yml) が PR / `main` で Auth・Memo・api-client・Web の typecheck / test / build を実行する。  
+`docker compose build` はイメージ取得が重いため CI では回さず、手元確認とする（手順: [`docs/local-setup.md`](docs/local-setup.md)）。
 
 ```bash
 # Auth / Memo 単体（各サービスディレクトリ）

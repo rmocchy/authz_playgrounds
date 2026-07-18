@@ -5,7 +5,7 @@
 
 ## 起動・構成
 
-- [ ] `docker compose build` が成功する（CI job `docker-build` と同等）
+- [ ] 手元で `docker compose build` または `docker compose up --build` が成功する（CI では実行しない）
 - [ ] `cp .env.example .env` のあと `docker compose up --build` で Auth / Memo / Web / Postgres が起動する
 - [ ] ブラウザで http://localhost:5173 が開く
 - [ ] サービス名/パスが `auth` であり、`idp` と命名されていない
