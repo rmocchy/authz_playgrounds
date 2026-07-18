@@ -10,7 +10,10 @@
     "check": "tsc --noEmit --pretty false"
   },
   "dependencies": {
+    "@uiw/react-md-editor": "^4.1.1",
+    "bootstrap": "^5.3.8",
     "react": "^19.1.0",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {

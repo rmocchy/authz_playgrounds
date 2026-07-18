@@ -7,6 +7,8 @@ Vite + React + TypeScript UI for the Authz Playground.
 - **global / secure** toggles
 - **Readable** tab lists own memos plus other users' global (non-secure) memos
 - Uses **`pkg/api-client`** with relative bases `/api/auth` and `/api/memo`
+- UI: **Bootstrap 5** + **react-bootstrap** (no hand-rolled chrome)
+- Memo body: **`@uiw/react-md-editor`** (edit + live Markdown preview)
 
 ## Cookie + proxy
 
@@ -68,13 +70,14 @@ services/web/
   index.html
   Dockerfile
   src/
-    main.tsx
+    main.tsx          # bootstrap CSS + App
     App.tsx
+    styles.css        # minimal app tweaks only
     api/client.ts     # createAuthClient/createMemoClient wrappers
     pages/
       LoginPage.tsx
       MemoListPage.tsx
-      MemoEditPage.tsx
+      MemoEditPage.tsx  # @uiw/react-md-editor for body
     components/
       MemoFlags.tsx
 ```

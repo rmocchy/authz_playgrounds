@@ -1,4 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
+import Alert from "react-bootstrap/Alert";
+import Badge from "react-bootstrap/Badge";
+import Button from "react-bootstrap/Button";
+import Card from "react-bootstrap/Card";
+import Nav from "react-bootstrap/Nav";
+import Spinner from "react-bootstrap/Spinner";
+import Stack from "react-bootstrap/Stack";
 import {
   errorMessage,
   memos,
@@ -49,91 +56,136 @@ export function MemoListPage({ user, onCreate, onOpen }: Props) {
   }
 
   return (
-    <div className="panel">
-      <div className="row between">
-        <h2>Memos</h2>
-        <button type="button" onClick={onCreate}>
-          + New memo
-        </button>
-      </div>
-
-      <div className="tabs" role="tablist">
-        <button
-          type="button"
-          className={scope === "mine" ? "tab active" : "tab"}
-          onClick={() => setScope("mine")}
+    <Card className="shadow-sm">
+      <Card.Body>
+        <Stack
+          direction="horizontal"
+          className="justify-content-between align-items-center mb-3"
         >
-          Mine
-        </button>
-        <button
-          type="button"
-          className={scope === "readable" ? "tab active" : "tab"}
-          onClick={() => setScope("readable")}
-          title="Own memos + others' global (non-secure) memos"
+          <Card.Title as="h2" className="h4 mb-0">
+            Memos
+          </Card.Title>
+          <Button variant="primary" onClick={onCreate}>
+            + New memo
+          </Button>
+        </Stack>
+
+        <Nav
+          variant="tabs"
+          className="mb-2"
+          activeKey={scope}
+          onSelect={(k) => {
+            if (k === "mine" || k === "readable") setScope(k);
+          }}
         >
-          Readable (incl. global)
-        </button>
-      </div>
+          <Nav.Item>
+            <Nav.Link eventKey="mine">Mine</Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link
+              eventKey="readable"
+              title="Own memos + others' global (non-secure) memos"
+            >
+              Readable (incl. global)
+            </Nav.Link>
+          </Nav.Item>
+        </Nav>
 
-      <p className="hint">
-        scope=<code>{scope}</code>
-        {scope === "readable"
-          ? " — includes other users' global & non-secure memos"
-          : " — only your memos"}
-      </p>
+        <p className="text-secondary small mb-3">
+          scope=<code>{scope}</code>
+          {scope === "readable"
+            ? " — includes other users' global & non-secure memos"
+            : " — only your memos"}
+        </p>
 
-      {error && <p className="error" role="alert">{error}</p>}
-      {loading && <p className="muted">Loading…</p>}
+        {error && (
+          <Alert variant="danger" className="py-2">
+            {error}
+          </Alert>
+        )}
+        {loading && (
+          <p className="text-secondary mb-0">
+            <Spinner animation="border" size="sm" className="me-2" />
+            Loading…
+          </p>
+        )}
 
-      {!loading && items.length === 0 && (
-        <p className="muted">No memos in this scope.</p>
-      )}
+        {!loading && items.length === 0 && (
+          <p className="text-secondary mb-0">No memos in this scope.</p>
+        )}
 
-      <ul className="memo-list">
-        {items.map((m) => {
-          const owned = m.ownerId === user.id;
-          return (
-            <li key={m.id} className="memo-card">
-              <div className="row between">
-                <button
-                  type="button"
-                  className="linkish"
-                  onClick={() => onOpen(m.id)}
-                >
-                  <strong>{m.title || "(untitled)"}</strong>
-                </button>
-                <span className="badges">
-                  {m.global && <span className="badge global">global</span>}
-                  {m.secure && <span className="badge secure">secure</span>}
-                  {!owned && <span className="badge other">others</span>}
-                </span>
-              </div>
-              <p className="preview">{preview(m.body)}</p>
-              <div className="row between meta">
-                <span className="muted">
-                  {owned ? "you" : `owner ${shortId(m.ownerId)}`} ·{" "}
-                  {formatDate(m.updatedAt)}
-                </span>
-                <span className="actions">
-                  <button type="button" onClick={() => onOpen(m.id)}>
-                    {owned ? "Edit" : "View"}
-                  </button>
-                  {owned && (
-                    <button
-                      type="button"
-                      className="danger"
-                      onClick={() => void onDelete(m)}
+        <Stack gap={3} className="mt-3">
+          {items.map((m) => {
+            const owned = m.ownerId === user.id;
+            return (
+              <Card key={m.id} className="border">
+                <Card.Body className="py-3">
+                  <Stack
+                    direction="horizontal"
+                    className="justify-content-between align-items-start gap-2"
+                  >
+                    <Button
+                      variant="link"
+                      className="p-0 text-start text-decoration-none"
+                      onClick={() => onOpen(m.id)}
                     >
-                      Delete
-                    </button>
-                  )}
-                </span>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+                      <strong>{m.title || "(untitled)"}</strong>
+                    </Button>
+                    <Stack direction="horizontal" gap={1} className="flex-wrap">
+                      {m.global && (
+                        <Badge bg="primary" pill>
+                          global
+                        </Badge>
+                      )}
+                      {m.secure && (
+                        <Badge bg="warning" text="dark" pill>
+                          secure
+                        </Badge>
+                      )}
+                      {!owned && (
+                        <Badge bg="success" pill>
+                          others
+                        </Badge>
+                      )}
+                    </Stack>
+                  </Stack>
+                  <Card.Text className="text-secondary small mb-2 mt-2">
+                    {preview(m.body)}
+                  </Card.Text>
+                  <Stack
+                    direction="horizontal"
+                    className="justify-content-between align-items-center flex-wrap gap-2"
+                  >
+                    <span className="text-secondary small">
+                      {owned ? "you" : `owner ${shortId(m.ownerId)}`} ·{" "}
+                      {formatDate(m.updatedAt)}
+                    </span>
+                    <Stack direction="horizontal" gap={2}>
+                      <Button
+                        size="sm"
+                        variant="outline-primary"
+                        onClick={() => onOpen(m.id)}
+                      >
+                        {owned ? "Edit" : "View"}
+                      </Button>
+                      {owned && (
+                        <Button
+                          size="sm"
+                          variant="outline-danger"
+                          onClick={() => void onDelete(m)}
+                        >
+                          Delete
+                        </Button>
+                      )}
+                    </Stack>
+                  </Stack>
+                </Card.Body>
+              </Card>
+            );
+          })}
+        </Stack>
+      </Card.Body>
+    </Card>
   );
 }
 
