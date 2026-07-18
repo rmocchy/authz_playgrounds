@@ -41,22 +41,29 @@ docker compose up --build
 
 ## テスト
 
-CI: [`.github/workflows/test.yml`](.github/workflows/test.yml) が PR / `main` で Auth・Memo・api-client・Web の typecheck / test / build を実行する。  
+CI:
+
+- Unit: [`.github/workflows/test.yml`](.github/workflows/test.yml) — PR / `main` で Auth・Memo・api-client・Web の typecheck / test / build。Deno 対象は **coverage**（Job Summary + PR コメント + HTML/LCOV artifact）
+- Mutation: [`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) — 同トリガーで Stryker を実行し **mutation score** を Job Summary / PR コメントに出し、HTML/JSON を artifact 化
+
 `docker compose build` はイメージ取得が重いため CI では回さず、手元確認とする（手順: [`docs/local-setup.md`](docs/local-setup.md)）。
 
 ```bash
 # Auth / Memo 単体（各サービスディレクトリ）
-cd services/auth && deno task test
-cd services/memo && deno task test
+cd services/auth && deno task lint && deno task check && deno task test
+cd services/memo && deno task lint && deno task check && deno task test
+cd pkg/api-client && deno task lint && deno task check && deno task test
+cd services/web && npm run check && npm run build
 
-# 重要パスの mutation（認可行列 + password 検証）
-./tools/mutate.sh
-./tools/mutate.sh --target authorize   # 速い
-./tools/mutate.sh --target password    # bcrypt のため遅め
+# Mutation（StrykerJS。各サービス直下。デプロイは Deno のまま）
+cd services/memo && npm ci && npm run mutate:domain   # authorize・速い
+cd services/memo && npm run mutate:http
+cd services/auth && npm ci && npm run mutate:domain   # password 含む・遅め
+cd services/auth && npm run mutate:http
 ```
 
-- 手順・閾値: [`docs/mutation-testing.md`](docs/mutation-testing.md)
-- 入口スクリプト: [`tools/mutate.sh`](tools/mutate.sh)
+- 手順・閾値・CI artifact: [`docs/mutation-testing.md`](docs/mutation-testing.md)
+- 入口: 各サービスの `stryker.*.json` / `npm run mutate:*`
 
 ## 学習メモ (`docs/`)
 
@@ -79,7 +86,7 @@ cd services/memo && deno task test
 | `infra/` | compose 補助（Postgres init 等） |
 | `docs/` | 学習メモ・実装後の解説 |
 | `projects/` | 企画・設計（Design Doc） |
-| `tools/` | `generate.sh`（TypeSpec）、`mutate.sh`（mutation） |
+| `tools/` | `generate.sh`（TypeSpec）、`ci/`（coverage / mutation 集計） |
 
 エージェント向けルール: [`AGENTS.md`](AGENTS.md)
 

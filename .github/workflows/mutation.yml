@@ -1,0 +1,204 @@
+# Mutation testing via StrykerJS (per service). Separate from unit CI.
+# HTML/JSON reports and scores are uploaded as artifacts even when a job fails.
+# PR comments summarize mutation scores (sticky).
+name: Mutation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: mutation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  DENO_VERSION: v2.x
+  NODE_VERSION: "22"
+
+jobs:
+  memo-domain:
+    name: memo-domain
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: services/memo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: services/memo/package-lock.json
+      - name: Cache Deno (memo)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/deno
+          key: deno-memo-${{ runner.os }}-${{ hashFiles('services/memo/deno.lock', 'services/memo/deno.json') }}
+          restore-keys: |
+            deno-memo-${{ runner.os }}-
+      - run: npm ci
+      - name: Mutation
+        run: npm run mutate:domain
+      - name: Mutation score
+        if: always()
+        run: bash ../../tools/ci/mutation-report.sh memo-domain reports/mutation/domain/mutation.json reports/mutation/domain/mutation-metrics.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-memo-domain-${{ github.run_id }}
+          path: |
+            services/memo/reports/mutation/domain/
+          if-no-files-found: warn
+          retention-days: 14
+
+  memo-http:
+    name: memo-http
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: services/memo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: services/memo/package-lock.json
+      - name: Cache Deno (memo)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/deno
+          key: deno-memo-${{ runner.os }}-${{ hashFiles('services/memo/deno.lock', 'services/memo/deno.json') }}
+          restore-keys: |
+            deno-memo-${{ runner.os }}-
+      - run: npm ci
+      - name: Mutation
+        run: npm run mutate:http
+      - name: Mutation score
+        if: always()
+        run: bash ../../tools/ci/mutation-report.sh memo-http reports/mutation/http/mutation.json reports/mutation/http/mutation-metrics.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-memo-http-${{ github.run_id }}
+          path: |
+            services/memo/reports/mutation/http/
+          if-no-files-found: warn
+          retention-days: 14
+
+  auth-domain:
+    name: auth-domain
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: services/auth
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: services/auth/package-lock.json
+      - name: Cache Deno (auth)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/deno
+          key: deno-auth-${{ runner.os }}-${{ hashFiles('services/auth/deno.lock', 'services/auth/deno.json') }}
+          restore-keys: |
+            deno-auth-${{ runner.os }}-
+      - run: npm ci
+      - name: Mutation
+        run: npm run mutate:domain
+      - name: Mutation score
+        if: always()
+        run: bash ../../tools/ci/mutation-report.sh auth-domain reports/mutation/domain/mutation.json reports/mutation/domain/mutation-metrics.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-auth-domain-${{ github.run_id }}
+          path: |
+            services/auth/reports/mutation/domain/
+          if-no-files-found: warn
+          retention-days: 14
+
+  auth-http:
+    name: auth-http
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: services/auth
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: services/auth/package-lock.json
+      - name: Cache Deno (auth)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/deno
+          key: deno-auth-${{ runner.os }}-${{ hashFiles('services/auth/deno.lock', 'services/auth/deno.json') }}
+          restore-keys: |
+            deno-auth-${{ runner.os }}-
+      - run: npm ci
+      - name: Mutation
+        run: npm run mutate:http
+      - name: Mutation score
+        if: always()
+        run: bash ../../tools/ci/mutation-report.sh auth-http reports/mutation/http/mutation.json reports/mutation/http/mutation-metrics.json
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-auth-http-${{ github.run_id }}
+          path: |
+            services/auth/reports/mutation/http/
+          if-no-files-found: warn
+          retention-days: 14
+
+  mutation-summary:
+    name: Mutation summary
+    needs: [memo-domain, memo-http, auth-domain, auth-http]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download mutation reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-*-${{ github.run_id }}
+          path: metrics-in
+          merge-multiple: true
+      - name: Aggregate
+        run: bash tools/ci/aggregate-metrics.sh "Mutation test scores" metrics-in mutation-summary.md
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash tools/ci/post-pr-comment.sh "<!-- ci-mutation-scores -->" mutation-summary.md

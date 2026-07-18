@@ -1,70 +1,95 @@
 # Mutation testing
 
-認可行列と password 検証など **壊れると危ない分岐** に対し、テストが本当にその分岐を見ているかを軽く確認する。
+認可行列・password 検証・HTTP ルートなど **壊れると危ない分岐** に対し、テストがその分岐を本当に見ているかを [StrykerJS](https://stryker-mutator.io/) で測る。
 
-## なぜ独自 runner か
+## 構成
 
-- Auth / Memo は **Deno**（JSR / npm: 混在）
-- StrykerJS は Node + Jest/Vitest 前提で、Deno ドメインへの導入コストが高い
-- 初回ゴールは「回ること」と「重要パスにスクリプトがあること」（設計 §6: 閾値は緩可）
+| 層 | 技術 | 役割 |
+|----|------|------|
+| デプロイ / ランタイム | **Deno** | Auth / Memo サービス本体 |
+| mutation ハーネス | **StrykerJS**（各サービス配下の npm） | AST 変異・スコア・HTML/JSON |
+| テスト | **`deno test`**（Stryker `command` runner） | 既存 unit / HTTP テスト |
 
-実装: [`tools/mutation/run.ts`](../tools/mutation/run.ts) · 入口 [`tools/mutate.sh`](../tools/mutate.sh)
+自前 runner・`tools/mutate.sh`・`tools/mutation/` は置かない。  
+**サービス直下の `stryker.*.json` + `npx stryker run`（npm scripts）だけ**。
+
+| サービス | 設定 | scripts（`package.json`） |
+|----------|------|---------------------------|
+| [`services/memo`](../services/memo/) | `stryker.domain.json`, `stryker.http.json` | `mutate:domain`, `mutate:http`, `mutate` |
+| [`services/auth`](../services/auth/) | 同上 | 同上 |
 
 ## 対象
 
-| モジュール | テスト | 何を守るか |
-|------------|--------|------------|
-| `services/memo/src/domain/authorize.ts` | `tests/authorize_test.ts` | owner / global / secure 行列、403 vs 404 |
-| `services/auth/src/domain/password.ts` | `tests/password_test.ts` | 空ハッシュ拒否、compare 結果、長さ制限など |
+| サービス | script | mutate | テスト |
+|----------|--------|--------|--------|
+| memo | `mutate:domain` | `src/domain/authorize.ts` | `tests/authorize_test.ts` |
+| memo | `mutate:http` | `src/routes/memos.ts` | `tests/memos_http_test.ts` |
+| auth | `mutate:domain` | password / session / cookies | password + session tests |
+| auth | `mutate:http` | `routes/auth.ts`, `sessions.ts` | `auth_http_test.ts` |
 
-## 実行
+HTTP 設定では `StringLiteral` 変異を除外（エラーメッセージ文言のノイズ抑制）。
 
-リポジトリルートで:
-
-```bash
-./tools/mutate.sh                 # authorize + password, threshold 50%
-./tools/mutate.sh --target authorize
-./tools/mutate.sh --target password
-./tools/mutate.sh --threshold 40  # より緩い閾値
-MUTATION_THRESHOLD=60 ./tools/mutate.sh
-```
-
-前提: `deno` が PATH にあること。
-
-password 側は bcrypt のため **数分かかる**ことがある。authorize のみなら通常数秒〜十数秒。
-
-## スコアの読み方
-
-- **killed**: 変異後にテストが失敗 → テストがその分岐を検知できている
-- **survived**: 変異後もテスト成功 → カバレッジの穴、または等価に近い変異
-- 既定閾値 **50%**（`MUTATION_THRESHOLD` または `--threshold`）
-
-CI では nightly / main のみ、など段階導入を想定（設計 §9）。
-
-## 限界 / 既知の survived
-
-この runner は **Stryker 相当のフル AST オペレータ一式ではない**。
-
-| 項目 | 実際の挙動 |
-|------|------------|
-| オペレータ | `tools/mutation/run.ts` に **手で並べた文字列置換**（各サイトの **先頭一致 1 箇所** のみ） |
-| 対象 | 上記 2 つの pure domain ファイルのみ（HTTP / DB / ルートは対象外） |
-| 復元 | 変異ごとにソースを書き戻す（`finally`）。**Ctrl+C などで途中 kill すると domain ソースが変異したまま残ることがある** → その場合は `git checkout -- services/*/src/domain/` で戻すか、再実行して正常終了させる |
-
-### password でよく survived する変異（現状の unit テストでは落ちない）
-
-| 変異ラベル | なぜ残りやすいか |
-|------------|------------------|
-| `catch returns true on error` | `bcrypt.compare` が throw する入力を unit で起こしにくい（不正ハッシュは多くの実装で `false` を返す） |
-| `lower bcrypt cost` | コスト係数は正しさ（accept/reject）に影響せず、**ほぼ等価変異** |
-
-authorize 側の curated オペレータは現状の表駆動テストで **全 killed** になりやすい。survived が増えたらテストを足すか、等価に近いオペレータを外す。
-
-再現例（目安）: authorize 15/15 killed · password 7/9 killed · overall ≈ 90% 前後（閾値 50% なら PASS）。
-
-## 単体テストだけ先に回す
+## ローカル実行
 
 ```bash
-cd services/memo && deno test -A tests/authorize_test.ts
-cd services/auth && deno test -A tests/password_test.ts
+# Memo
+cd services/memo
+npm ci
+npm run mutate:domain   # 速い
+npm run mutate:http
+# npm run mutate        # domain + http 逐次
+
+# Auth
+cd services/auth
+npm ci
+npm run mutate:domain   # bcrypt のため遅め
+npm run mutate:http
 ```
+
+同等の直接呼び出し:
+
+```bash
+cd services/memo
+npx stryker run stryker.domain.json
+```
+
+### レポート
+
+各サービス配下（gitignore の `reports/`）:
+
+- `reports/mutation/domain/{index.html,mutation.json}`
+- `reports/mutation/http/{index.html,mutation.json}`
+
+### スコア
+
+- **killed** / **survived** — Stryker 標準の意味
+- break 閾値 **50%**（各 `stryker.*.json` の `thresholds.break`）
+- 未達時は Stryker が非 0 終了
+
+## CI
+
+[`.github/workflows/mutation.yml`](../.github/workflows/mutation.yml)
+
+- トリガー: PR / `main` / `workflow_dispatch`
+- ジョブ: memo-domain / memo-http / auth-domain / auth-http
+- 各ジョブ: `working-directory: services/<svc>` → `npm ci` → `npm run mutate:…` → スコア集計
+- artifact: `services/<svc>/reports/mutation/{domain,http}/`（HTML / JSON / metrics、失敗時も upload）
+- **Job Summary** と PR コメント（sticky）に mutation score を表示（`tools/ci/mutation-report.sh` / `aggregate-metrics.sh`）
+- unit CI（`test.yml`）とは分離。line/branch coverage は `test.yml` 側
+
+## 限界
+
+| 項目 | 内容 |
+|------|------|
+| coverage analysis | `command` runner のため `off` |
+| 速度 | HTTP・password は重い → CI ジョブ分割 |
+| 対象外 | Postgres 実装、FE、Dockerfile / env のみ |
+
+survived が増えたらテスト追加が第一選択。
+
+## トラブルシュート
+
+- `npm ci` 後に `npx stryker --version` で入っているか確認
+- baseline 失敗時は先に `deno task test`
+- `Could not find a matching package for 'npm:…' in the node_modules directory` — 各サービスの `deno.json` に `"nodeModulesDir": "auto"` があること（mutation 用 `package.json` があると Deno が local `node_modules` を要求するため）。無ければ追加するか `deno install` を実行
+- CI のスコア表示: `tools/ci/mutation-report.sh` / `aggregate-metrics.sh` / `post-pr-comment.sh`（Job Summary + sticky PR コメント）
