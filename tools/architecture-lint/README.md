@@ -2,6 +2,12 @@
 
 Backend services (`services/auth`, `services/memo`) のレイヤ構成と **1 ファイル 1 責務** を機械的に検査する。
 
+## 方針
+
+- **解析・I/O は外部 OSS のみ**: TypeScript Compiler API + Deno `@std/*`
+- **ルール本体だけが repo 固有**: 「handler/usecase は export 関数ちょうど 1」「`routes/`/`db/` 禁止」など playground のレイヤ規約
+- ESLint `boundaries` 等は import 境界向けで、**単一 export 関数** や **必須ディレクトリ** をそのままは代替しにくいため、薄い専用 CLI にしている（自前 AST パーサは持たない）
+
 ## 依存（外部パッケージ）
 
 | パッケージ | 用途 |

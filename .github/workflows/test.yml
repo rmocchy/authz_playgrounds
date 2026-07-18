@@ -1,5 +1,5 @@
-# Unit / typecheck CI for Auth, Memo, Web, and shared api-client.
-# Mutation tests are local/dev-oriented (slow, mutates files in place) — not run here.
+# Unit / typecheck / architecture lint for Auth, Memo, Web, and shared api-client.
+# Mutation (StrykerJS) runs in a separate workflow: .github/workflows/mutation.yml
 name: Test
 
 on:

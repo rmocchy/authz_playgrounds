@@ -19,7 +19,7 @@
 import { parseArgs } from "@std/cli/parse-args";
 import { exists } from "@std/fs/exists";
 import { expandGlob } from "@std/fs/expand-glob";
-import { fromFileUrl, join, relative } from "@std/path";
+import { basename, fromFileUrl, join, relative } from "@std/path";
 import { collectFunctionValueExports } from "./scan.ts";
 
 const ROOT = fromFileUrl(new URL("../..", import.meta.url));
@@ -112,7 +112,7 @@ async function checkService(service: string): Promise<Finding[]> {
     const files = await listTsFiles(layerDir);
     for (const file of files) {
       const rel = relative(ROOT, file).replaceAll("\\", "/");
-      const base = file.split(/[/\\]/).pop()!;
+      const base = basename(file);
 
       if (base === "index.ts" || base === "mod.ts") {
         findings.push({

@@ -47,9 +47,8 @@ export function collectFunctionValueExports(
   );
 
   const localFunctions = new Set<string>();
-  const localNonFunctions = new Set<string>();
 
-  // First pass: classify local bindings
+  // First pass: classify local function bindings (for `export { name }`)
   for (const stmt of sf.statements) {
     if (ts.isFunctionDeclaration(stmt) && stmt.name) {
       localFunctions.add(stmt.name.text);
@@ -59,16 +58,8 @@ export function collectFunctionValueExports(
         if (!ts.isIdentifier(decl.name)) continue;
         if (isFunctionLikeInitializer(decl.initializer)) {
           localFunctions.add(decl.name.text);
-        } else {
-          localNonFunctions.add(decl.name.text);
         }
       }
-    }
-    if (ts.isClassDeclaration(stmt) && stmt.name) {
-      localNonFunctions.add(stmt.name.text);
-    }
-    if (ts.isEnumDeclaration(stmt)) {
-      localNonFunctions.add(stmt.name.text);
     }
   }
 
