@@ -38,6 +38,7 @@ yarn-error.log*
 
 # Test / mutation
 .stryker-tmp/
+.mutation-tmp/
 reports/
 .nyc_output/
 

@@ -55,6 +55,7 @@ docker compose up --build
 - Auth: [`services/auth/README.md`](services/auth/README.md)
 - Memo: [`services/memo/README.md`](services/memo/README.md)
 - Web（proxy / Cookie）: [`services/web/README.md`](services/web/README.md)
+- Cookie + Vite proxy 学習メモ: [`docs/cookie-and-vite-proxy.md`](docs/cookie-and-vite-proxy.md)
 
 停止・ボリューム削除:
 
@@ -63,6 +64,32 @@ docker compose down
 # DB を消して init をやり直す場合
 docker compose down -v
 ```
+
+## テスト
+
+```bash
+# Auth / Memo 単体（各サービスディレクトリ）
+cd services/auth && deno task test
+cd services/memo && deno task test
+
+# 重要パスの mutation（認可行列 + password 検証）
+./tools/mutate.sh
+./tools/mutate.sh --target authorize   # 速い
+./tools/mutate.sh --target password    # bcrypt のため遅め
+```
+
+- 手順・閾値: [`docs/mutation-testing.md`](docs/mutation-testing.md)
+- 入口スクリプト: [`tools/mutate.sh`](tools/mutate.sh)
+
+## 学習メモ (`docs/`)
+
+| ドキュメント | 内容 |
+|--------------|------|
+| [`docs/auth-vs-idp.md`](docs/auth-vs-idp.md) | Auth（アプリ基盤）と将来 IdP の用語差 |
+| [`docs/secure-flag-future.md`](docs/secure-flag-future.md) | `secure` の初回意味とステップアップ拡張 |
+| [`docs/cookie-and-vite-proxy.md`](docs/cookie-and-vite-proxy.md) | Cookie + 同一オリジン proxy |
+| [`docs/mutation-testing.md`](docs/mutation-testing.md) | mutation の実行方法 |
+| [`docs/acceptance-self-check.md`](docs/acceptance-self-check.md) | 設計 §10 受け入れ条件の自己チェック |
 
 ## ディレクトリ
 
@@ -74,6 +101,7 @@ docker compose down -v
 | `infra/` | compose 補助（Postgres init 等） |
 | `docs/` | 学習メモ・実装後の解説 |
 | `projects/` | 企画・設計（Design Doc） |
+| `tools/` | `generate.sh`（TypeSpec）、`mutate.sh`（mutation） |
 
 エージェント向けルール: [`AGENTS.md`](AGENTS.md)
 
