@@ -1,6 +1,11 @@
 # Authz Playgrounds — local stack
 # Services: auth (app authz platform), memo, web, db
 # Full app behavior lands in later PRs; stubs keep compose valid.
+#
+# Port contract:
+# - Container-internal listen ports are fixed (auth 3001, memo 3002, web 5173, db 5432).
+# - AUTH_PORT / MEMO_PORT / WEB_PORT / POSTGRES_PORT only remap the host publish side.
+# - Inter-service URLs always use compose DNS + internal ports (e.g. http://auth:3001).
 
 services:
   db:
@@ -31,7 +36,8 @@ services:
     ports:
       - "${AUTH_PORT:-3001}:3001"
     environment:
-      PORT: ${AUTH_PORT:-3001}
+      # Fixed container listen port (not AUTH_PORT — that is host-only)
+      PORT: "3001"
       DATABASE_URL: ${AUTH_DATABASE_URL:-postgres://playground:changeme@db:5432/auth}
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-playground_session}
     depends_on:
@@ -47,9 +53,10 @@ services:
     ports:
       - "${MEMO_PORT:-3002}:3002"
     environment:
-      PORT: ${MEMO_PORT:-3002}
+      PORT: "3002"
       DATABASE_URL: ${MEMO_DATABASE_URL:-postgres://playground:changeme@db:5432/memo}
-      AUTH_BASE_URL: ${AUTH_BASE_URL:-http://auth:3001}
+      # Compose-network hostname + fixed internal Auth port
+      AUTH_BASE_URL: http://auth:3001
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-playground_session}
     depends_on:
       db:
@@ -66,8 +73,8 @@ services:
     ports:
       - "${WEB_PORT:-5173}:5173"
     environment:
-      PORT: ${WEB_PORT:-5173}
-      # Vite proxy targets (used once FE is implemented)
+      PORT: "5173"
+      # Compose-network hostnames + fixed internal ports (Vite proxy once FE lands)
       AUTH_PROXY_TARGET: http://auth:3001
       MEMO_PROXY_TARGET: http://memo:3002
     depends_on:

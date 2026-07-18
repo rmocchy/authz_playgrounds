@@ -40,12 +40,14 @@ docker compose config
 docker compose up --build
 ```
 
-| サービス | ホストポート | 備考 |
-|----------|--------------|------|
-| Postgres (`db`) | 5432 | init で DB `auth` / `memo` を作成。**この PR で動作する** |
-| Auth | 3001 | プレースホルダ（後続 PR で実装） |
-| Memo | 3002 | プレースホルダ（後続 PR で実装） |
-| Web | 5173 | プレースホルダ（後続 PR で実装） |
+| サービス | コンテナ内ポート（固定） | ホスト公開（既定 / 上書き） | 備考 |
+|----------|---------------------------|-----------------------------|------|
+| Postgres (`db`) | 5432 | 5432 / `POSTGRES_PORT` | init で DB `auth` / `memo` を作成。**この PR で動作する** |
+| Auth | 3001 | 3001 / `AUTH_PORT` | プレースホルダ（後続 PR で実装） |
+| Memo | 3002 | 3002 / `MEMO_PORT` | プレースホルダ（後続 PR で実装） |
+| Web | 5173 | 5173 / `WEB_PORT` | プレースホルダ（後続 PR で実装） |
+
+サービス間 URL は compose ネットワーク上の固定内部ポートを使う（例: `http://auth:3001`）。`*_PORT` はホスト側の公開ポートだけを変える。
 
 > **注意**: 現状の `auth` / `memo` / `web` は compose を通すための stub（`sleep infinity`）です。ログイン〜メモ CRUD は後続 PR で入り、その後に `docker compose up` で一通り再現できるようになります。Postgres の multi-DB 初期化はこの PR から有効です。
 
