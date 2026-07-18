@@ -11,22 +11,59 @@ export interface RequestOptions {
   expectJson?: boolean;
 }
 
-function joinUrl(baseUrl: string, path: string, query?: RequestOptions["query"]): string {
-  const base = baseUrl.replace(/\/$/, "");
-  const p = path.startsWith("/") ? path : `/${path}`;
-  const url = new URL(`${base}${p}`, base || "http://local.invalid");
-  if (query) {
-    for (const [k, v] of Object.entries(query)) {
-      if (v !== undefined && v !== null && v !== "") {
-        url.searchParams.set(k, v);
-      }
+function appendQuery(
+  target: string,
+  query?: RequestOptions["query"],
+): string {
+  if (!query) return target;
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(query)) {
+    if (v !== undefined && v !== null && v !== "") {
+      qs.set(k, v);
     }
   }
-  // When baseUrl is empty (same-origin), return path + search only.
-  if (!baseUrl) {
-    return `${url.pathname}${url.search}`;
+  const s = qs.toString();
+  if (!s) return target;
+  return target.includes("?") ? `${target}&${s}` : `${target}?${s}`;
+}
+
+/**
+ * Join a client baseUrl with an API path and optional query.
+ *
+ * Supports:
+ * - `""` → same-origin absolute path (`/v1/...`)
+ * - `"/api/auth"` / `"/api/memo"` → Vite proxy prefixes (relative, no host)
+ * - `"http://localhost:3001"` → absolute service URL (Deno / server-to-server)
+ *
+ * Exported for unit tests.
+ */
+export function joinUrl(
+  baseUrl: string,
+  path: string,
+  query?: RequestOptions["query"],
+): string {
+  const base = (baseUrl ?? "").replace(/\/$/, "");
+  const p = path.startsWith("/") ? path : `/${path}`;
+  const isAbsoluteHttp = /^https?:\/\//i.test(base);
+
+  if (isAbsoluteHttp) {
+    const url = new URL(base);
+    const basePath = url.pathname.replace(/\/$/, "");
+    url.pathname = `${basePath}${p}`;
+    // Clear any search from base; query args win.
+    url.search = "";
+    if (query) {
+      for (const [k, v] of Object.entries(query)) {
+        if (v !== undefined && v !== null && v !== "") {
+          url.searchParams.set(k, v);
+        }
+      }
+    }
+    return url.toString();
   }
-  return url.toString();
+
+  // Empty or relative path prefix (browser / Vite proxy) — no host invention.
+  return appendQuery(`${base}${p}`, query);
 }
 
 async function parseErrorBody(res: Response): Promise<ErrorBody | null> {
@@ -82,7 +119,18 @@ export async function apiRequest<T>(
   if (!text) {
     return undefined as T;
   }
-  return JSON.parse(text) as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new ApiError(
+      res.status,
+      {
+        code: "invalid_response",
+        message: "Expected JSON response body but failed to parse",
+      },
+      res,
+    );
+  }
 }
 
 export function createHttp(options: ClientOptions = {}) {

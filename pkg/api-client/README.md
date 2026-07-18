@@ -2,9 +2,9 @@
 
 TypeScript HTTP client for Auth and Memo APIs.
 
-- **Contracts:** TypeSpec in `specs/` (source of truth)
-- **OpenAPI:** `specs/tsp-output/openapi/openapi.yaml` (from `./tools/generate.sh`)
-- **This package:** Deno/browser-friendly fetch client matching the contract
+- **Contracts (source of truth):** TypeSpec in `specs/`
+- **Generated:** OpenAPI at `specs/tsp-output/openapi/openapi.yaml` via `./tools/generate.sh` / `npm run generate`
+- **This package:** Hand-synced Deno/browser-friendly fetch client matching the contract (not a TypeSpec emitter output)
 
 ## Import
 
@@ -17,18 +17,21 @@ import {
   ApiError,
 } from "./mod.ts";
 
+// Vite proxy layout (design §6.3): /api/auth → Auth, /api/memo → Memo
 const auth = createAuthClient({
-  baseUrl: "", // same-origin (Vite proxy) or http://localhost:3001
+  baseUrl: "/api/auth",
   credentials: "include", // default — sends cookie playground_session
 });
 
 await auth.login({ loginId: "alice", password: "secret" });
 const me = await auth.me();
 
-const memos = createMemoClient({ baseUrl: "" });
+const memos = createMemoClient({ baseUrl: "/api/memo" });
 await memos.create({ body: "# hello", global: false, secure: false });
 await memos.list("readable");
 ```
+
+Absolute bases work for Deno service-to-service calls, e.g. `baseUrl: "http://auth:3001"`.
 
 ## Cookie
 
@@ -42,6 +45,9 @@ Memo/server-side callers may forward via `headers: { Cookie: "playground_session
 ./tools/generate.sh
 # or
 npm run generate
+# or
+bash tools/generate.sh
 ```
 
-After TypeSpec changes, update types/paths in this package if they diverge.
+After TypeSpec changes, update types/paths in this package if they diverge.  
+Unit tests for URL joining: `deno test pkg/api-client/http_test.ts`

@@ -45,7 +45,7 @@ export {
 } from "./types.ts";
 
 export { ApiError, isApiError } from "./error.ts";
-export { apiRequest, createHttp } from "./http.ts";
+export { apiRequest, createHttp, joinUrl } from "./http.ts";
 
 export {
   createAuthClient,

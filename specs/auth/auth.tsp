@@ -26,7 +26,7 @@ model Credentials {
   password: string;
 }
 
-@doc("Public user profile returned after register/login and by sessions/me.")
+@doc("Public user profile returned after register/login (not sessions/me; that uses SessionMe).")
 model User {
   @doc("App user id (UUID).")
   id: string;
@@ -91,7 +91,9 @@ interface AuthRoutes {
 
   /**
    * Destroy the current session and clear `playground_session`.
-   * Idempotent: succeeds even if already logged out.
+   * Idempotent: always returns 204, including when the cookie is missing
+   * or the session is already invalid/expired. Clients should treat any
+   * outcome as logged-out and clear local UI state.
    */
   @post
   @route("/logout")
@@ -100,5 +102,5 @@ interface AuthRoutes {
     @doc("Session cookie playground_session (optional if already cleared).")
     @cookie(#{ name: "playground_session" })
     playgroundSession?: string,
-  ): LogoutSuccess | UnauthorizedError;
+  ): LogoutSuccess;
 }

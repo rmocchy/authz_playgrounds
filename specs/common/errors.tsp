@@ -32,7 +32,7 @@ model BadRequestError is BadRequestResponse {
   @body body: ErrorBody;
 }
 
-@doc("401 Unauthorized — missing or invalid session.")
+@doc("401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).")
 model UnauthorizedError is UnauthorizedResponse {
   @body body: ErrorBody;
 }

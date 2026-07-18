@@ -75,7 +75,10 @@ export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 export interface ClientOptions {
   /**
    * Base URL for the service (no trailing slash).
-   * Examples: "" (same-origin / Vite proxy), "http://localhost:3001"
+   * Examples:
+   * - `""` — same-origin paths (`/v1/...`)
+   * - `"/api/auth"` / `"/api/memo"` — Vite proxy prefixes (relative)
+   * - `"http://localhost:3001"` — absolute (Deno service-to-service)
    */
   baseUrl?: string;
   /**

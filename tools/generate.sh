@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Generate API artifacts from TypeSpec contracts.
 #
-# Primary: compile specs/ → OpenAPI (specs/tsp-output/openapi/openapi.yaml)
-# Client:  pkg/api-client/ is a Deno-friendly TypeScript client kept in sync
-#          with the TypeSpec contract (hand-maintained fetch wrappers + types).
+# Generated: specs/ → OpenAPI (specs/tsp-output/openapi/openapi.yaml)
+# Hand-synced (not emitted): pkg/api-client/ Deno-friendly fetch client + types.
+# After editing specs/, re-run this script and update pkg/api-client if paths/shapes changed.
 #
 # Usage (from repo root):
 #   ./tools/generate.sh
 #   npm run generate
+#   bash tools/generate.sh
 #
 # Fallback: if TypeSpec packages are not installed, prints instructions and
 # exits non-zero without wiping existing OpenAPI or pkg/api-client.
@@ -19,6 +20,7 @@ cd "$ROOT"
 SPECS_DIR="${ROOT}/specs"
 CONFIG="${SPECS_DIR}/tspconfig.yaml"
 OPENAPI_OUT="${SPECS_DIR}/tsp-output/openapi"
+OPENAPI_FILE="${OPENAPI_OUT}/openapi.yaml"
 
 echo "==> Authz Playground: TypeSpec generate"
 echo "    specs:  ${SPECS_DIR}"
@@ -43,16 +45,38 @@ fi
 echo "==> tsp compile specs"
 npx --no-install tsp compile "${SPECS_DIR}" --config "${CONFIG}"
 
-if [[ -f "${OPENAPI_OUT}/openapi.yaml" ]]; then
-  echo "==> OpenAPI written: ${OPENAPI_OUT}/openapi.yaml"
-else
-  echo "warning: expected OpenAPI at ${OPENAPI_OUT}/openapi.yaml not found" >&2
+if [[ ! -f "${OPENAPI_FILE}" ]]; then
+  echo "error: expected OpenAPI at ${OPENAPI_FILE} not found" >&2
+  exit 1
 fi
 
-echo "==> pkg/api-client/"
-echo "    Hand-maintained Deno-friendly client (types + fetch) matching TypeSpec."
-echo "    After changing specs/, update pkg/api-client types/paths if needed,"
-echo "    then re-run this script to refresh OpenAPI."
+echo "==> OpenAPI written: ${OPENAPI_FILE}"
+
+# Smoke-check key paths so committed OpenAPI cannot drift past missing routes.
+echo "==> Smoke-check OpenAPI paths"
+REQUIRED_PATHS=(
+  "/v1/auth/login"
+  "/v1/auth/register"
+  "/v1/auth/logout"
+  "/v1/sessions/me"
+  "/v1/memos"
+)
+missing=0
+for p in "${REQUIRED_PATHS[@]}"; do
+  # OpenAPI yaml path keys are indented two spaces: "  /v1/auth/login:"
+  if ! grep -qE "^  ${p}:" "${OPENAPI_FILE}"; then
+    echo "error: missing OpenAPI path ${p}" >&2
+    missing=1
+  fi
+done
+if [[ "${missing}" -ne 0 ]]; then
+  exit 1
+fi
+echo "    ok: ${REQUIRED_PATHS[*]}"
+
+echo "==> pkg/api-client/ (hand-synced, not generated)"
+echo "    After changing specs/, update pkg/api-client types/paths if needed."
 echo "    Import: import { createAuthClient, createMemoClient } from \"./pkg/api-client/mod.ts\""
+echo "    Client tests: deno test pkg/api-client/http_test.ts"
 
 echo "==> Done."

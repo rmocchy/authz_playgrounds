@@ -40,7 +40,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Common.ErrorBody'
         '401':
-          description: 401 Unauthorized — missing or invalid session.
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
           content:
             application/json:
               schema:
@@ -59,7 +59,9 @@ paths:
       summary: Logout
       description: |-
         Destroy the current session and clear `playground_session`.
-        Idempotent: succeeds even if already logged out.
+        Idempotent: always returns 204, including when the cookie is missing
+        or the session is already invalid/expired. Clients should treat any
+        outcome as logged-out and clear local UI state.
       parameters:
         - name: playground_session
           in: cookie
@@ -76,12 +78,6 @@ paths:
               required: false
               schema:
                 type: string
-        '401':
-          description: 401 Unauthorized — missing or invalid session.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Common.ErrorBody'
       tags:
         - Auth
   /v1/auth/register:
@@ -154,7 +150,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Common.ErrorBody'
         '401':
-          description: 401 Unauthorized — missing or invalid session.
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
           content:
             application/json:
               schema:
@@ -186,7 +182,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Common.ErrorBody'
         '401':
-          description: 401 Unauthorized — missing or invalid session.
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
           content:
             application/json:
               schema:
@@ -224,7 +220,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Memo.Memo'
         '401':
-          description: 401 Unauthorized — missing or invalid session.
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
           content:
             application/json:
               schema:
@@ -273,7 +269,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Common.ErrorBody'
         '401':
-          description: 401 Unauthorized — missing or invalid session.
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
           content:
             application/json:
               schema:
@@ -318,7 +314,7 @@ paths:
         '204':
           description: 'There is no content to send for this request, but the headers may be useful. '
         '401':
-          description: 401 Unauthorized — missing or invalid session.
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
           content:
             application/json:
               schema:
@@ -362,7 +358,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Auth.SessionMe'
         '401':
-          description: 401 Unauthorized — missing or invalid session.
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
           content:
             application/json:
               schema:
@@ -415,7 +411,7 @@ components:
         createdAt:
           type: string
           description: Account creation time (ISO-8601).
-      description: Public user profile returned after register/login and by sessions/me.
+      description: Public user profile returned after register/login (not sessions/me; that uses SessionMe).
     Common.ErrorBody:
       type: object
       required:
