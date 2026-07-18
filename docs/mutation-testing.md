@@ -41,6 +41,27 @@ password 側は bcrypt のため **数分かかる**ことがある。authorize 
 
 CI では nightly / main のみ、など段階導入を想定（設計 §9）。
 
+## 限界 / 既知の survived
+
+この runner は **Stryker 相当のフル AST オペレータ一式ではない**。
+
+| 項目 | 実際の挙動 |
+|------|------------|
+| オペレータ | `tools/mutation/run.ts` に **手で並べた文字列置換**（各サイトの **先頭一致 1 箇所** のみ） |
+| 対象 | 上記 2 つの pure domain ファイルのみ（HTTP / DB / ルートは対象外） |
+| 復元 | 変異ごとにソースを書き戻す（`finally`）。**Ctrl+C などで途中 kill すると domain ソースが変異したまま残ることがある** → その場合は `git checkout -- services/*/src/domain/` で戻すか、再実行して正常終了させる |
+
+### password でよく survived する変異（現状の unit テストでは落ちない）
+
+| 変異ラベル | なぜ残りやすいか |
+|------------|------------------|
+| `catch returns true on error` | `bcrypt.compare` が throw する入力を unit で起こしにくい（不正ハッシュは多くの実装で `false` を返す） |
+| `lower bcrypt cost` | コスト係数は正しさ（accept/reject）に影響せず、**ほぼ等価変異** |
+
+authorize 側の curated オペレータは現状の表駆動テストで **全 killed** になりやすい。survived が増えたらテストを足すか、等価に近いオペレータを外す。
+
+再現例（目安）: authorize 15/15 killed · password 7/9 killed · overall ≈ 90% 前後（閾値 50% なら PASS）。
+
 ## 単体テストだけ先に回す
 
 ```bash
