@@ -28,3 +28,7 @@ Deno.test("verifyPassword rejects empty/garbage hash", async () => {
 Deno.test("hashPassword rejects empty password", async () => {
   await assertRejects(() => hashPassword(""));
 });
+
+Deno.test("hashPassword rejects password longer than bcrypt 72-char limit", async () => {
+  await assertRejects(() => hashPassword("x".repeat(73)));
+});

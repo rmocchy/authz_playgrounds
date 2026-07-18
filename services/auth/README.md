@@ -21,7 +21,10 @@ Cookie: `HttpOnly; Path=/; SameSite=Lax` (no `Secure` on local HTTP).
 - `users`: `id`, `login_id` (unique), `password_hash`, `created_at`
 - `sessions`: `id` (cookie value), `user_id`, `expires_at`, `created_at`
 
-Passwords are stored as **bcrypt** hashes (never plaintext).
+Passwords are stored as **bcrypt** hashes (never plaintext). Input is capped at
+**72 characters** to match bcrypt’s effective limit (longer passwords would only
+use the first 72 bytes). Login always runs a bcrypt compare (dummy hash when the
+user is missing) so response timing does not leak whether `loginId` exists.
 
 ## SafeQL / SQL
 

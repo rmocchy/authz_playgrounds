@@ -34,7 +34,10 @@ export function isValidLoginId(loginId: string): boolean {
   return loginId.length >= 1 && loginId.length <= 128;
 }
 
+/** bcrypt uses only the first 72 bytes — cap here so verify is unambiguous. */
+export const MAX_PASSWORD_LENGTH = 72;
+
 export function isValidPassword(password: string): boolean {
-  // Min 1 per TypeSpec; upper bound avoids abuse.
-  return password.length >= 1 && password.length <= 256;
+  // Min 1 per TypeSpec; max 72 matches bcrypt effective input length.
+  return password.length >= 1 && password.length <= MAX_PASSWORD_LENGTH;
 }

@@ -42,11 +42,12 @@ function jsonReq(
 }
 
 Deno.test("register → 201 and public user shape", async () => {
-  const { handler } = testApp();
+  const plainPassword = "pw-alice";
+  const { handler, users } = testApp();
   const res = await handler(
     jsonReq("POST", "/v1/auth/register", {
       loginId: "alice",
-      password: "pw-alice",
+      password: plainPassword,
     }),
   );
   assertEquals(res.status, 201);
@@ -56,6 +57,12 @@ Deno.test("register → 201 and public user shape", async () => {
   assertExists(body.createdAt);
   assertEquals(body.password, undefined);
   assertEquals(body.passwordHash, undefined);
+
+  // Persisted secret is bcrypt, not plaintext (focus: password not stored raw).
+  const stored = await users.findByLoginId("alice");
+  assertExists(stored);
+  assertEquals(stored.passwordHash.startsWith("$2"), true);
+  assertEquals(stored.passwordHash !== plainPassword, true);
 });
 
 Deno.test("register duplicate → 409", async () => {
@@ -105,6 +112,7 @@ Deno.test("login sets session cookie; me returns user", async () => {
   assertExists(setCookie);
   assertEquals(setCookie.includes(`${COOKIE}=`), true);
   assertEquals(setCookie.includes("HttpOnly"), true);
+  assertEquals(setCookie.includes("Path=/"), true);
   assertEquals(setCookie.includes("SameSite=Lax"), true);
 
   const match = setCookie.match(new RegExp(`${COOKIE}=([^;]+)`));

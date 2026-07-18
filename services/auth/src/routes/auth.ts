@@ -3,10 +3,15 @@
  */
 import type { UserRepository } from "../db/users.ts";
 import type { SessionRepository } from "../db/sessions.ts";
-import { hashPassword, verifyPassword } from "../domain/password.ts";
+import {
+  DUMMY_PASSWORD_HASH,
+  hashPassword,
+  verifyPassword,
+} from "../domain/password.ts";
 import {
   isValidLoginId,
   isValidPassword,
+  MAX_PASSWORD_LENGTH,
   normalizeLoginId,
   toPublicUser,
   type UserRecord,
@@ -70,7 +75,9 @@ async function parseCredentials(
     return badRequest("loginId must be 1–128 characters after trim");
   }
   if (!isValidPassword(password)) {
-    return badRequest("password must be 1–256 characters");
+    return badRequest(
+      `password must be 1–${MAX_PASSWORD_LENGTH} characters`,
+    );
   }
   return { loginId, password };
 }
@@ -115,12 +122,11 @@ export async function handleLogin(
   if (creds instanceof Response) return creds;
 
   const user = await deps.users.findByLoginId(creds.loginId);
-  // Uniform 401 for unknown user or bad password (no user enumeration).
-  if (!user) {
-    return unauthorized("Invalid loginId or password");
-  }
-  const ok = await verifyPassword(creds.password, user.passwordHash);
-  if (!ok) {
+  // Uniform body + comparable verify cost for unknown user vs bad password
+  // (dummy bcrypt compare when missing — mitigates timing user enumeration).
+  const hashToCheck = user?.passwordHash ?? DUMMY_PASSWORD_HASH;
+  const ok = await verifyPassword(creds.password, hashToCheck);
+  if (!user || !ok) {
     return unauthorized("Invalid loginId or password");
   }
 

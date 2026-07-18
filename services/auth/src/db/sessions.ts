@@ -27,6 +27,16 @@ export interface SessionRepository {
   deleteById(id: string): Promise<void>;
 }
 
+/** Postgres invalid_text_representation (e.g. bad UUID cast). */
+function isInvalidInputSyntax(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: string; message?: string };
+  if (e.code === "22P02") return true;
+  // postgres.js may surface message without code in some paths
+  return typeof e.message === "string" &&
+    /invalid input syntax for type uuid/i.test(e.message);
+}
+
 export function createSessionRepository(sql: Sql): SessionRepository {
   return {
     async insert(session: SessionRecord): Promise<SessionRecord> {
@@ -44,22 +54,31 @@ export function createSessionRepository(sql: Sql): SessionRepository {
     },
 
     async findById(id: string): Promise<SessionRecord | null> {
-      // Invalid UUID → no row (avoid 500 on garbage cookie)
-      const rows = await sql<SessionRow[]>`
-        SELECT id, user_id, expires_at, created_at
-        FROM sessions
-        WHERE id = ${id}::uuid
-        LIMIT 1
-      `.catch(() => [] as SessionRow[]);
-      return rows[0] ? mapSession(rows[0]) : null;
+      // Invalid UUID cookie → no session (401 path). Other DB errors propagate → 500.
+      try {
+        const rows = await sql<SessionRow[]>`
+          SELECT id, user_id, expires_at, created_at
+          FROM sessions
+          WHERE id = ${id}::uuid
+          LIMIT 1
+        `;
+        return rows[0] ? mapSession(rows[0]) : null;
+      } catch (err) {
+        if (isInvalidInputSyntax(err)) return null;
+        throw err;
+      }
     },
 
     async deleteById(id: string): Promise<void> {
-      await sql`
-        DELETE FROM sessions WHERE id = ${id}::uuid
-      `.catch(() => {
-        /* ignore invalid uuid on logout */
-      });
+      // Idempotent logout: ignore garbage UUID only; rethrow real DB failures.
+      try {
+        await sql`
+          DELETE FROM sessions WHERE id = ${id}::uuid
+        `;
+      } catch (err) {
+        if (isInvalidInputSyntax(err)) return;
+        throw err;
+      }
     },
   };
 }
