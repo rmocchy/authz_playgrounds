@@ -67,6 +67,9 @@ docker compose down -v
 
 ## テスト
 
+CI: [`.github/workflows/test.yml`](.github/workflows/test.yml) が PR / `main` で Auth・Memo・api-client・Web のテスト / typecheck を実行する。
+
+
 ```bash
 # Auth / Memo 単体（各サービスディレクトリ）
 cd services/auth && deno task test
