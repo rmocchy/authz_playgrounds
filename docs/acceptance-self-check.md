@@ -5,6 +5,7 @@
 
 ## 起動・構成
 
+- [ ] 手元で `docker compose build` または `docker compose up --build` が成功する（CI では実行しない）
 - [ ] `cp .env.example .env` のあと `docker compose up --build` で Auth / Memo / Web / Postgres が起動する
 - [ ] ブラウザで http://localhost:5173 が開く
 - [ ] サービス名/パスが `auth` であり、`idp` と命名されていない
@@ -35,7 +36,7 @@
 
 - [ ] 認可・password の単体テストがある（`authorize_test.ts` / `password_test.ts`）
 - [ ] mutation を実行できる: `./tools/mutate.sh`（閾値は初期は緩可）
-- [ ] README または `docs/` にローカル起動手順と主要フローがある
+- [ ] [`docs/local-setup.md`](./local-setup.md) に Docker / ローカル起動手順と主要フローがある
 - [ ] Auth（アプリ基盤）と将来 IdP（Google/Okta 相当）の違いがドキュメントにある
 - [ ] 秘密鍵・本番相当パスワードが git に含まれない（`.env` は ignore）
 
@@ -47,4 +48,5 @@
 | secure 将来拡張 | [`docs/secure-flag-future.md`](./secure-flag-future.md) |
 | Cookie + proxy | [`docs/cookie-and-vite-proxy.md`](./cookie-and-vite-proxy.md) |
 | Mutation | [`docs/mutation-testing.md`](./mutation-testing.md) |
-| 起動入口 | [`README.md`](../README.md) |
+| 起動手順（Docker / ローカル） | [`local-setup.md`](./local-setup.md) |
+| 起動入口（最短コマンド） | [`README.md`](../README.md) |
