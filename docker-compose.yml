@@ -75,6 +75,18 @@ services:
       # Compose-network hostname + fixed internal Auth port
       AUTH_BASE_URL: http://auth:3001
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-playground_session}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "deno",
+          "eval",
+          "const r=await fetch('http://127.0.0.1:3002/health'); if(!r.ok) Deno.exit(1)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
     depends_on:
       db:
         condition: service_healthy
