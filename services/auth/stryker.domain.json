@@ -1,0 +1,45 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "deno test -A --quiet tests/password_test.ts tests/session_test.ts"
+  },
+  "mutate": [
+    "src/domain/password.ts",
+    "src/domain/session.ts",
+    "src/http/cookies.ts"
+  ],
+  "coverageAnalysis": "off",
+  "timeoutMS": 120000,
+  "timeoutFactor": 2,
+  "concurrency": 2,
+  "packageManager": "npm",
+  "symlinkNodeModules": false,
+  "thresholds": {
+    "high": 80,
+    "low": 50,
+    "break": 50
+  },
+  "reporters": [
+    "clear-text",
+    "progress",
+    "html",
+    "json"
+  ],
+  "htmlReporter": {
+    "fileName": "reports/mutation/domain/index.html"
+  },
+  "jsonReporter": {
+    "fileName": "reports/mutation/domain/mutation.json"
+  },
+  "ignorePatterns": [
+    "node_modules",
+    ".git",
+    "reports",
+    ".stryker-tmp",
+    "**/deno.lock"
+  ],
+  "cleanTempDir": true,
+  "allowEmpty": false,
+  "disableTypeChecks": true
+}
