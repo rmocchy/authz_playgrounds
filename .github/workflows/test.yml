@@ -1,0 +1,97 @@
+# Unit / typecheck CI for Auth, Memo, Web, and shared api-client.
+# Mutation tests are local/dev-oriented (slow, mutates files in place) — not run here.
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  auth:
+    name: Auth (Deno tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/auth
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Cache Deno dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/deno
+          key: deno-auth-${{ runner.os }}-${{ hashFiles('services/auth/deno.lock', 'services/auth/deno.json') }}
+          restore-keys: |
+            deno-auth-${{ runner.os }}-
+      - name: Typecheck
+        run: deno task check
+      - name: Test
+        run: deno task test
+
+  memo:
+    name: Memo (Deno tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/memo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Cache Deno dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/deno
+          key: deno-memo-${{ runner.os }}-${{ hashFiles('services/memo/deno.lock', 'services/memo/deno.json') }}
+          restore-keys: |
+            deno-memo-${{ runner.os }}-
+      - name: Typecheck
+        run: deno task check
+      - name: Test
+        run: deno task test
+
+  api-client:
+    name: api-client (Deno)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Check
+        run: deno check pkg/api-client/mod.ts
+      - name: Test
+        run: deno test -A pkg/api-client/
+
+  web:
+    name: Web (typecheck + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: services/web/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Typecheck
+        run: npm run check
+      - name: Build
+        run: npm run build

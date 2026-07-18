@@ -1,0 +1,521 @@
+openapi: 3.0.0
+info:
+  title: Authz Playground API
+  version: 0.1.0
+  description: |-
+    Combined service description for OpenAPI emission.
+    Runtime services may be split (auth :3001, memo :3002) but share this contract surface.
+tags:
+  - name: Auth
+  - name: Sessions
+  - name: Memos
+paths:
+  /v1/auth/login:
+    post:
+      operationId: AuthRoutes_login
+      summary: Login
+      description: |-
+        Login with loginId + password.
+        On success sets HttpOnly cookie `playground_session`.
+      parameters: []
+      responses:
+        '200':
+          description: 'Login success — session created; Set-Cookie: playground_session.'
+          headers:
+            Set-Cookie:
+              required: false
+              description: |-
+                Session cookie set by the server.
+                Name: playground_session
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auth.User'
+        '400':
+          description: 400 Bad Request — invalid input or validation failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '401':
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Auth.Credentials'
+  /v1/auth/logout:
+    post:
+      operationId: AuthRoutes_logout
+      summary: Logout
+      description: |-
+        Destroy the current session and clear `playground_session`.
+        Idempotent: always returns 204, including when the cookie is missing
+        or the session is already invalid/expired. Clients should treat any
+        outcome as logged-out and clear local UI state.
+      parameters:
+        - name: playground_session
+          in: cookie
+          required: false
+          description: Session cookie playground_session (optional if already cleared).
+          schema:
+            type: string
+          explode: false
+      responses:
+        '204':
+          description: Logout success — session destroyed; cookie cleared.
+          headers:
+            Set-Cookie:
+              required: false
+              schema:
+                type: string
+      tags:
+        - Auth
+  /v1/auth/register:
+    post:
+      operationId: AuthRoutes_register
+      summary: Register user
+      description: |-
+        Register a new user (local/dev signup).
+        Does not automatically establish a session; call login after register if desired.
+      parameters: []
+      responses:
+        '201':
+          description: Register success — new user created (no session cookie required).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auth.User'
+        '400':
+          description: 400 Bad Request — invalid input or validation failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '409':
+          description: 409 Conflict — e.g. duplicate login_id on register.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Auth.Credentials'
+  /v1/memos:
+    get:
+      operationId: MemoRoutes_list
+      summary: List memos
+      description: |-
+        List memos.
+        Query `scope=mine` (default) or `scope=readable`.
+      parameters:
+        - name: playground_session
+          in: cookie
+          required: false
+          description: Session cookie playground_session.
+          schema:
+            type: string
+          explode: false
+        - name: scope
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Memo.MemoListScope'
+          explode: false
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memo.MemoList'
+        '400':
+          description: 400 Bad Request — invalid input or validation failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '401':
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+      tags:
+        - Memos
+    post:
+      operationId: MemoRoutes_create
+      summary: Create memo
+      description: Create a memo for the current user.
+      parameters:
+        - name: playground_session
+          in: cookie
+          required: false
+          schema:
+            type: string
+          explode: false
+      responses:
+        '201':
+          description: The request has succeeded and a new resource has been created as a result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memo.Memo'
+        '400':
+          description: 400 Bad Request — invalid input or validation failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '401':
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+      tags:
+        - Memos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Memo.CreateMemoRequest'
+  /v1/memos/{id}:
+    get:
+      operationId: MemoRoutes_get
+      summary: Get memo
+      description: Get a single memo by id (authorization checked).
+      parameters:
+        - name: playground_session
+          in: cookie
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memo.Memo'
+        '401':
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '403':
+          description: 403 Forbidden — authenticated but not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '404':
+          description: 404 Not Found — resource does not exist or is hidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+      tags:
+        - Memos
+    patch:
+      operationId: MemoRoutes_update
+      summary: Update memo
+      description: Update a memo (owner only).
+      parameters:
+        - name: playground_session
+          in: cookie
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memo.Memo'
+        '400':
+          description: 400 Bad Request — invalid input or validation failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '401':
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '403':
+          description: 403 Forbidden — authenticated but not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '404':
+          description: 404 Not Found — resource does not exist or is hidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+      tags:
+        - Memos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Memo.UpdateMemoRequest'
+    delete:
+      operationId: MemoRoutes_delete
+      summary: Delete memo
+      description: Delete a memo (owner only).
+      parameters:
+        - name: playground_session
+          in: cookie
+          required: false
+          schema:
+            type: string
+          explode: false
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: 'There is no content to send for this request, but the headers may be useful. '
+        '401':
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '403':
+          description: 403 Forbidden — authenticated but not allowed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+        '404':
+          description: 404 Not Found — resource does not exist or is hidden.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+      tags:
+        - Memos
+  /v1/sessions/me:
+    get:
+      operationId: SessionRoutes_me
+      summary: Current user
+      description: |-
+        Return the current authenticated user.
+        Unauthenticated (missing/invalid cookie) → 401.
+
+        Used by Memo (server-to-server with Cookie forward) and by FE.
+      parameters:
+        - name: playground_session
+          in: cookie
+          required: false
+          description: Session cookie playground_session.
+          schema:
+            type: string
+          explode: false
+      responses:
+        '200':
+          description: Authenticated sessions/me response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auth.SessionMe'
+        '401':
+          description: 401 Unauthorized — unauthenticated or invalid credentials/session (e.g. bad password on login, missing/invalid cookie on protected routes).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Common.ErrorBody'
+      tags:
+        - Sessions
+components:
+  schemas:
+    Auth.Credentials:
+      type: object
+      required:
+        - loginId
+        - password
+      properties:
+        loginId:
+          type: string
+          minLength: 1
+          description: Login identifier (unique).
+        password:
+          type: string
+          minLength: 1
+          description: Password (never stored in plaintext server-side).
+      description: Credentials for register and login.
+    Auth.SessionMe:
+      type: object
+      required:
+        - id
+        - loginId
+      properties:
+        id:
+          type: string
+          description: App user id (UUID).
+        loginId:
+          type: string
+          description: Login identifier.
+      description: Current session user payload.
+    Auth.User:
+      type: object
+      required:
+        - id
+        - loginId
+        - createdAt
+      properties:
+        id:
+          type: string
+          description: App user id (UUID).
+        loginId:
+          type: string
+          description: Login identifier.
+        createdAt:
+          type: string
+          description: Account creation time (ISO-8601).
+      description: Public user profile returned after register/login (not sessions/me; that uses SessionMe).
+    Common.ErrorBody:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          allOf:
+            - $ref: '#/components/schemas/Common.ErrorCode'
+          description: Machine-readable error code.
+        message:
+          type: string
+          description: Human-readable error message (for logs/UI, not for branching).
+      description: Common error response body.
+    Common.ErrorCode:
+      type: string
+      description: Machine-readable error code.
+    Memo.CreateMemoRequest:
+      type: object
+      required:
+        - body
+      properties:
+        title:
+          type: string
+          description: Optional title; default empty string.
+        body:
+          type: string
+          description: Markdown body.
+        global:
+          type: boolean
+          description: Share read access with other authenticated users. Default false.
+        secure:
+          type: boolean
+          description: Mark as requiring future step-up. Default false. Owner-only while unset.
+      description: Create memo request body.
+    Memo.Memo:
+      type: object
+      required:
+        - id
+        - ownerId
+        - title
+        - body
+        - global
+        - secure
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          description: Memo id (UUID).
+        ownerId:
+          type: string
+          description: Owner app user id (from Auth).
+        title:
+          type: string
+          description: Title (may be empty string).
+        body:
+          type: string
+          description: Markdown body.
+        global:
+          type: boolean
+          description: If true, any authenticated user may read (unless secure).
+        secure:
+          type: boolean
+          description: If true, requires step-up auth in the future; initial behavior is owner-only.
+        createdAt:
+          type: string
+          description: Creation time (ISO-8601).
+        updatedAt:
+          type: string
+          description: Last update time (ISO-8601).
+      description: Memo resource.
+    Memo.MemoList:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Memo.Memo'
+      description: List response.
+    Memo.MemoListScope:
+      type: string
+      enum:
+        - mine
+        - readable
+      description: List scope for GET /v1/memos.
+    Memo.UpdateMemoRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        global:
+          type: boolean
+        secure:
+          type: boolean
+      description: Partial update for PATCH /v1/memos/{id}. Owner only.
+servers:
+  - url: http://localhost:3002
+    description: Memo service (local)
+    variables: {}
+  - url: http://localhost:3001
+    description: Auth service (local)
+    variables: {}

@@ -1,0 +1,16 @@
+{
+  "name": "authz-playgrounds",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Authz learning playground — TypeSpec contracts and shared tooling",
+  "scripts": {
+    "generate": "bash tools/generate.sh",
+    "tsp:compile": "tsp compile specs --config specs/tspconfig.yaml"
+  },
+  "devDependencies": {
+    "@typespec/compiler": "^1.14.0",
+    "@typespec/http": "^1.14.0",
+    "@typespec/openapi": "^1.14.0",
+    "@typespec/openapi3": "^1.14.0"
+  }
+}

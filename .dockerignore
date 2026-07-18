@@ -1,0 +1,29 @@
+# Keep docker build context small and platform-correct.
+# Host node_modules (e.g. darwin-arm64 esbuild) must not clobber Alpine install.
+
+**/.git
+**/.git/**
+**/node_modules
+**/node_modules/**
+**/dist
+**/dist/**
+**/build
+**/coverage
+**/.vite
+**/*.tsbuildinfo
+
+# Secrets / local env
+.env
+.env.*
+!**/.env.example
+
+# Logs / OS / IDE
+**/*.log
+**/.DS_Store
+**/.idea
+**/.vscode
+
+# Heavy tooling caches not needed for web image
+**/npm-debug.log*
+**/.npm
+**/.cache
