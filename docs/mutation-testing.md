@@ -90,3 +90,4 @@ survived が増えたらテスト追加が第一選択。
 
 - `npm ci` 後に `npx stryker --version` で入っているか確認
 - baseline 失敗時は先に `deno task test`
+- `Could not find a matching package for 'npm:…' in the node_modules directory` — 各サービスの `deno.json` に `"nodeModulesDir": "auto"` があること（mutation 用 `package.json` があると Deno が local `node_modules` を要求するため）。無ければ追加するか `deno install` を実行
