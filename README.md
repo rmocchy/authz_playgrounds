@@ -43,8 +43,8 @@ docker compose up --build
 
 CI:
 
-- Unit: [`.github/workflows/test.yml`](.github/workflows/test.yml) — PR / `main` で Auth・Memo・api-client・Web の lint / typecheck / test / build
-- Mutation: [`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) — 同トリガーで Stryker を実行し HTML/JSON を artifact 化
+- Unit: [`.github/workflows/test.yml`](.github/workflows/test.yml) — PR / `main` で Auth・Memo・api-client・Web の typecheck / test / build。Deno 対象は **coverage**（Job Summary + PR コメント + HTML/LCOV artifact）
+- Mutation: [`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) — 同トリガーで Stryker を実行し **mutation score** を Job Summary / PR コメントに出し、HTML/JSON を artifact 化
 
 `docker compose build` はイメージ取得が重いため CI では回さず、手元確認とする（手順: [`docs/local-setup.md`](docs/local-setup.md)）。
 
@@ -86,7 +86,7 @@ cd services/auth && npm run mutate:http
 | `infra/` | compose 補助（Postgres init 等） |
 | `docs/` | 学習メモ・実装後の解説 |
 | `projects/` | 企画・設計（Design Doc） |
-| `tools/` | `generate.sh`（TypeSpec など） |
+| `tools/` | `generate.sh`（TypeSpec）、`ci/`（coverage / mutation 集計） |
 
 エージェント向けルール: [`AGENTS.md`](AGENTS.md)
 

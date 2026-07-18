@@ -1,5 +1,6 @@
 # Mutation testing via StrykerJS (per service). Separate from unit CI.
-# HTML/JSON reports are uploaded as artifacts even when a job fails.
+# HTML/JSON reports and scores are uploaded as artifacts even when a job fails.
+# PR comments summarize mutation scores (sticky).
 name: Mutation
 
 on:
@@ -14,6 +15,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: write
 
 env:
   DENO_VERSION: v2.x
@@ -47,12 +49,16 @@ jobs:
       - run: npm ci
       - name: Mutation
         run: npm run mutate:domain
+      - name: Mutation score
+        if: always()
+        run: bash ../../tools/ci/mutation-report.sh memo-domain reports/mutation/domain/mutation.json reports/mutation/domain/mutation-metrics.json
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mutation-memo-domain-${{ github.run_id }}
-          path: services/memo/reports/mutation/domain/
+          path: |
+            services/memo/reports/mutation/domain/
           if-no-files-found: warn
           retention-days: 14
 
@@ -83,12 +89,16 @@ jobs:
       - run: npm ci
       - name: Mutation
         run: npm run mutate:http
+      - name: Mutation score
+        if: always()
+        run: bash ../../tools/ci/mutation-report.sh memo-http reports/mutation/http/mutation.json reports/mutation/http/mutation-metrics.json
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mutation-memo-http-${{ github.run_id }}
-          path: services/memo/reports/mutation/http/
+          path: |
+            services/memo/reports/mutation/http/
           if-no-files-found: warn
           retention-days: 14
 
@@ -119,12 +129,16 @@ jobs:
       - run: npm ci
       - name: Mutation
         run: npm run mutate:domain
+      - name: Mutation score
+        if: always()
+        run: bash ../../tools/ci/mutation-report.sh auth-domain reports/mutation/domain/mutation.json reports/mutation/domain/mutation-metrics.json
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mutation-auth-domain-${{ github.run_id }}
-          path: services/auth/reports/mutation/domain/
+          path: |
+            services/auth/reports/mutation/domain/
           if-no-files-found: warn
           retention-days: 14
 
@@ -155,11 +169,36 @@ jobs:
       - run: npm ci
       - name: Mutation
         run: npm run mutate:http
+      - name: Mutation score
+        if: always()
+        run: bash ../../tools/ci/mutation-report.sh auth-http reports/mutation/http/mutation.json reports/mutation/http/mutation-metrics.json
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mutation-auth-http-${{ github.run_id }}
-          path: services/auth/reports/mutation/http/
+          path: |
+            services/auth/reports/mutation/http/
           if-no-files-found: warn
           retention-days: 14
+
+  mutation-summary:
+    name: Mutation summary
+    needs: [memo-domain, memo-http, auth-domain, auth-http]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download mutation reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-*-${{ github.run_id }}
+          path: metrics-in
+          merge-multiple: true
+      - name: Aggregate
+        run: bash tools/ci/aggregate-metrics.sh "Mutation test scores" metrics-in mutation-summary.md
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash tools/ci/post-pr-comment.sh "<!-- ci-mutation-scores -->" mutation-summary.md
