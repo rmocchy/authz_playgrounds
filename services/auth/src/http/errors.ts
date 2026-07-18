@@ -23,7 +23,10 @@ export function jsonError(
   });
 }
 
-export function badRequest(message: string, code = "validation_error"): Response {
+export function badRequest(
+  message: string,
+  code = "validation_error",
+): Response {
   return jsonError(400, code, message);
 }
 

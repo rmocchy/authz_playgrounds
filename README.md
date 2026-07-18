@@ -43,14 +43,15 @@ docker compose up --build
 
 CI:
 
-- Unit / size lint: [`.github/workflows/test.yml`](.github/workflows/test.yml) — PR / `main` で Auth・Memo・api-client・Web の typecheck / test / build と ESLint サイズ検査
-- Mutation: [`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) — StrykerJS で mutation score を Job Summary / artifact 化
+- Unit / strict lint: [`.github/workflows/test.yml`](.github/workflows/test.yml) — typecheck / test / build に加え `deno fmt` · `deno lint` · ESLint · Biome
+- Mutation: [`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) — StrykerJS
 
 `docker compose build` はイメージ取得が重いため CI では回さず、手元確認とする（手順: [`docs/local-setup.md`](docs/local-setup.md)）。
 
 ```bash
-# ファイル・関数の肥大防止（ESLint max-lines / max-lines-per-function）
-npm run lint:size
+# 記法 + 静的解析（厳しめ一括）
+npm run lint:all
+npm run fmt          # 自動整形
 
 # Auth / Memo 単体（各サービスディレクトリ）
 cd services/auth && deno task test

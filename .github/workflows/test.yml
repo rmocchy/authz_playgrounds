@@ -1,4 +1,4 @@
-# Unit / typecheck / size lint for Auth, Memo, Web, and shared api-client.
+# Unit / typecheck / strict lint (Deno fmt+lint, ESLint, Biome) for Auth, Memo, Web, api-client.
 # Mutation (StrykerJS) runs in a separate workflow: .github/workflows/mutation.yml
 name: Test
 
@@ -15,20 +15,29 @@ permissions:
   contents: read
 
 jobs:
-  size-lint:
-    name: Size lint (ESLint max-lines)
+  lint:
+    name: Lint (fmt + deno lint + ESLint + Biome)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: package-lock.json
-      - name: Install
+      - name: Install root tooling
         run: npm ci
-      - name: Lint fat files / functions
-        run: npm run lint:size
+      - name: Deno format check
+        run: npm run fmt:deno:check
+      - name: Deno lint
+        run: npm run lint:deno
+      - name: ESLint (backend strict)
+        run: npm run lint:eslint
+      - name: Biome (web)
+        run: npm run lint:web
 
   auth:
     name: Auth (Deno tests)
@@ -87,26 +96,32 @@ jobs:
         with:
           deno-version: v2.x
       - name: Check
-        run: deno check pkg/api-client/mod.ts
+        run: deno check --config pkg/api-client/deno.json pkg/api-client/mod.ts
       - name: Test
-        run: deno test -A pkg/api-client/
+        run: deno test -A --config pkg/api-client/deno.json pkg/api-client/
 
   web:
-    name: Web (typecheck + build)
+    name: Web (typecheck + build + lint)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: services/web
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: services/web/package-lock.json
-      - name: Install
+          cache-dependency-path: |
+            package-lock.json
+            services/web/package-lock.json
+      - name: Install root (Biome)
         run: npm ci
+      - name: Install web
+        working-directory: services/web
+        run: npm ci
+      - name: Biome
+        run: npm run lint:web
       - name: Typecheck
+        working-directory: services/web
         run: npm run check
       - name: Build
+        working-directory: services/web
         run: npm run build

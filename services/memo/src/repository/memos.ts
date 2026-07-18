@@ -1,9 +1,12 @@
 import type { Sql } from "./client.ts";
 import type {
   CreateMemoInput,
+  MemoListScope,
   MemoRecord,
   UpdateMemoInput,
 } from "../domain/memo.ts";
+
+export type { MemoListScope };
 
 interface MemoRow {
   id: string;
@@ -14,6 +17,14 @@ interface MemoRow {
   is_secure: boolean;
   created_at: Date;
   updated_at: Date;
+}
+
+function requireFirstRow<T>(rows: T[], context: string): T {
+  const row = rows[0];
+  if (row === undefined) {
+    throw new Error(`expected row from ${context}`);
+  }
+  return row;
 }
 
 function mapMemo(row: MemoRow): MemoRecord {
@@ -32,8 +43,6 @@ function mapMemo(row: MemoRow): MemoRecord {
       : new Date(row.updated_at),
   };
 }
-
-export type MemoListScope = "mine" | "readable";
 
 export interface MemoRepository {
   insert(ownerId: string, input: CreateMemoInput): Promise<MemoRecord>;
@@ -65,7 +74,7 @@ export function createMemoRepository(sql: Sql): MemoRepository {
         RETURNING
           id, owner_id, title, body, is_global, is_secure, created_at, updated_at
       `;
-      return mapMemo(rows[0]!);
+      return mapMemo(requireFirstRow(rows, "memos.insert"));
     },
 
     async findById(id) {
@@ -133,7 +142,7 @@ export function createMemoRepository(sql: Sql): MemoRepository {
     },
 
     async delete(id) {
-      const rows = await sql<{ id: string }[]>`
+      const rows = await sql<Array<{ id: string }>>`
         DELETE FROM memos
         WHERE id = ${id}::uuid
         RETURNING id
@@ -153,7 +162,7 @@ export function createMemoryMemoRepository(
   }
 
   return {
-    async insert(ownerId, input) {
+    insert(ownerId, input) {
       const now = new Date();
       const memo: MemoRecord = {
         id: crypto.randomUUID(),
@@ -166,15 +175,15 @@ export function createMemoryMemoRepository(
         updatedAt: now,
       };
       byId.set(memo.id, memo);
-      return { ...memo };
+      return Promise.resolve({ ...memo });
     },
 
-    async findById(id) {
+    findById(id) {
       const m = byId.get(id);
-      return m ? { ...m } : null;
+      return Promise.resolve(m ? { ...m } : null);
     },
 
-    async listForUser(ownerId, scope) {
+    listForUser(ownerId, scope) {
       const all = [...byId.values()];
       const filtered = all.filter((m) => {
         if (m.ownerId === ownerId) return true;
@@ -186,12 +195,12 @@ export function createMemoryMemoRepository(
         if (t !== 0) return t;
         return b.id.localeCompare(a.id);
       });
-      return filtered.map((m) => ({ ...m }));
+      return Promise.resolve(filtered.map((m) => ({ ...m })));
     },
 
-    async update(id, input) {
+    update(id, input) {
       const existing = byId.get(id);
-      if (!existing) return null;
+      if (!existing) return Promise.resolve(null);
       const next: MemoRecord = {
         ...existing,
         title: input.title !== undefined ? input.title : existing.title,
@@ -201,11 +210,11 @@ export function createMemoryMemoRepository(
         updatedAt: new Date(),
       };
       byId.set(id, next);
-      return { ...next };
+      return Promise.resolve({ ...next });
     },
 
-    async delete(id) {
-      return byId.delete(id);
+    delete(id) {
+      return Promise.resolve(byId.delete(id));
     },
   };
 }

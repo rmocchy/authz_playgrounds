@@ -3,9 +3,9 @@
  */
 import type { MemoRepository } from "../repository/memos.ts";
 import {
-  toMemoJson,
   type CreateMemoInput,
   type MemoJson,
+  toMemoJson,
 } from "../domain/memo.ts";
 
 export interface CreateMemoDeps {
@@ -17,7 +17,10 @@ export interface CreateMemoUsecaseInput {
   input: CreateMemoInput;
 }
 
-export type CreateMemoResult = { ok: true; memo: MemoJson };
+export interface CreateMemoResult {
+  ok: true;
+  memo: MemoJson;
+}
 
 export async function createMemo(
   deps: CreateMemoDeps,

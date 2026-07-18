@@ -31,7 +31,10 @@ export async function parseCredentials(req: Request): Promise<Credentials> {
   const loginId = normalizeLoginId(rec.loginId);
   const password = rec.password;
   if (!isValidLoginId(loginId)) {
-    return { ok: false, message: "loginId must be 1–128 characters after trim" };
+    return {
+      ok: false,
+      message: "loginId must be 1–128 characters after trim",
+    };
   }
   if (!isValidPassword(password)) {
     return {

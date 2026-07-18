@@ -13,29 +13,26 @@ Deno バックエンドは **レイヤ分割** と **ファイルを肥大させ
 
 禁止: 旧 `routes/`（複数 handler 同居）、旧 `db/`（名前は `repository/` に統一）。
 
-## ファイルを薄く保つ（検査あり）
+## ファイルを薄く保つ + レイヤ境界
 
-`handler/` / `usecase/` は特に薄く保つ。完全に「export 関数ちょうど 1」までは強制しないが、
-**ファイル・関数が長くなりすぎない**ことを ESLint で担保する。
+`handler/` / `usecase/` は特に薄く保つ。
 
 - 共有ヘルパーは `http/` や `domain/` へ置く
 - barrel（`handler/index.ts` 等）は避け、モジュールを直接 import する
-- `domain/` / `repository/` はエンティティ単位の凝集を優先（やや大きめは可）
+- import 方向: **handler → usecase → domain / repository**（ESLint `boundaries` で検査）
 
-## 検査
-
-外部 linter: **ESLint** コアの `max-lines` / `max-lines-per-function`（設定はルート `eslint.config.mjs`）。
+## 検査（外部 OSS）
 
 ```bash
-# リポジトリルート
-npm run lint:size
-# 互換エイリアス
-npm run lint:architecture
+# 一括（記法 + lint）
+npm run lint:all
 ```
 
-| 対象 | max-lines | max-lines-per-function |
-|------|-----------|------------------------|
-| `services/{auth,memo}/src/**` | 250 | 100 |
-| 上記のうち `handler/` · `usecase/` | 120 | 80 |
+| ツール | 内容 |
+|--------|------|
+| `deno fmt` | 記法 |
+| `deno lint` | Deno 推奨 |
+| ESLint | サイズ・複雑度・TS 衛生・レイヤ境界 |
+| Biome | Web 側（別スタック） |
 
-（blank / comment 行はカウントから除外）
+詳細・閾値: [`docs/linting.md`](../../docs/linting.md)

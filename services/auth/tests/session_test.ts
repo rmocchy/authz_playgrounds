@@ -1,8 +1,5 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import {
-  computeExpiresAt,
-  isSessionActive,
-} from "../src/domain/session.ts";
+import { computeExpiresAt, isSessionActive } from "../src/domain/session.ts";
 import {
   buildSessionSetCookie,
   parseCookieHeader,

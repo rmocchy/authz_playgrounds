@@ -112,13 +112,13 @@ export function createStubAuthClient(
   usersByCookie: Map<string, SessionUser | null>,
 ): AuthClient {
   return {
-    async getSessionMe(cookieHeader) {
+    getSessionMe(cookieHeader) {
       if (!cookieHeader) {
-        return {
-          ok: false,
+        return Promise.resolve({
+          ok: false as const,
           status: 401,
           message: "Missing or invalid session",
-        };
+        });
       }
       // Support full "name=value" or raw value match against map keys
       const user = usersByCookie.get(cookieHeader);
@@ -126,16 +126,16 @@ export function createStubAuthClient(
         // Try matching by exact cookie header values stored as keys
         for (const [key, val] of usersByCookie) {
           if (cookieHeader.includes(key) && val) {
-            return { ok: true, user: val };
+            return Promise.resolve({ ok: true as const, user: val });
           }
         }
-        return {
-          ok: false,
+        return Promise.resolve({
+          ok: false as const,
           status: 401,
           message: "Missing or invalid session",
-        };
+        });
       }
-      return { ok: true, user };
+      return Promise.resolve({ ok: true as const, user });
     },
   };
 }

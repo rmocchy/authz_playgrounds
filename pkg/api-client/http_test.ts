@@ -2,7 +2,7 @@
  * Unit tests for URL joining used by the API client.
  * Run: deno test pkg/api-client/http_test.ts
  */
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "@std/assert";
 import { joinUrl } from "./http.ts";
 
 Deno.test("joinUrl: empty baseUrl (same-origin)", () => {

@@ -2,13 +2,8 @@
  * GET /v1/memos
  */
 import type { AppDeps } from "../deps.ts";
-import type { MemoListScope } from "../repository/memos.ts";
-import {
-  badRequest,
-  jsonError,
-  jsonOk,
-  unauthorized,
-} from "../http/errors.ts";
+import type { MemoListScope } from "../domain/memo.ts";
+import { badRequest, jsonError, jsonOk, unauthorized } from "../http/errors.ts";
 import { listMemos } from "../usecase/list_memos.ts";
 import { requireUser } from "../usecase/require_user.ts";
 

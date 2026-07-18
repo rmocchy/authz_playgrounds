@@ -36,8 +36,8 @@ export function MemoFlags({ global, secure, disabled, onChange }: Props) {
         </span>
       </label>
       <p className="hint">
-        Authz matrix: non-owner can read only when{" "}
-        <code>global=true</code> and <code>secure=false</code>.
+        Authz matrix: non-owner can read only when <code>global=true</code> and{" "}
+        <code>secure=false</code>.
       </p>
     </fieldset>
   );

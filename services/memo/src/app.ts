@@ -38,8 +38,9 @@ export function createHandler(
       }
 
       const match = path.match(MEMO_ID_PATH);
-      if (match) {
-        const id = decodeURIComponent(match[1]!);
+      const rawId = match?.[1];
+      if (rawId !== undefined) {
+        const id = decodeURIComponent(rawId);
         if (method === "GET") {
           return await handleGet(req, deps, id);
         }

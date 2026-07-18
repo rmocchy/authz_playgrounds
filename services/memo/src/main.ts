@@ -21,10 +21,13 @@ async function resolveMigrationsDir(): Promise<string> {
       return p;
     }
   });
-  for (const dir of [candidates[0]!, ...normalized, candidates[1]!]) {
+  const ordered = [...candidates, ...normalized];
+  for (const dir of ordered) {
     try {
       const st = await Deno.stat(dir);
-      if (st.isDirectory) return dir;
+      if (st.isDirectory) {
+        return dir;
+      }
     } catch {
       // try next
     }

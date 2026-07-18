@@ -3,12 +3,9 @@
  */
 import type { UserRepository } from "../repository/users.ts";
 import type { SessionRepository } from "../repository/sessions.ts";
-import {
-  DUMMY_PASSWORD_HASH,
-  verifyPassword,
-} from "../domain/password.ts";
+import { DUMMY_PASSWORD_HASH, verifyPassword } from "../domain/password.ts";
 import { computeExpiresAt } from "../domain/session.ts";
-import { toPublicUser, type PublicUser } from "../domain/user.ts";
+import { type PublicUser, toPublicUser } from "../domain/user.ts";
 
 export interface LoginDeps {
   users: UserRepository;

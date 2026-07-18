@@ -69,7 +69,9 @@ export function joinUrl(
 async function parseErrorBody(res: Response): Promise<ErrorBody | null> {
   try {
     const data = await res.json();
-    if (data && typeof data === "object" && "code" in data && "message" in data) {
+    if (
+      data && typeof data === "object" && "code" in data && "message" in data
+    ) {
       return data as ErrorBody;
     }
     return null;
