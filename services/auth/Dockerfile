@@ -1,5 +1,5 @@
 # Auth service — Deno runtime (app authz platform, NOT an IdP)
-FROM denoland/deno:2.1.4
+FROM denoland/deno:2.9.2
 
 WORKDIR /app
 
