@@ -3,7 +3,7 @@
  */
 import { assertEquals, assertExists } from "@std/assert";
 import { createHandler } from "../src/app.ts";
-import { createMemoryMemoRepository } from "../src/db/memos.ts";
+import { createMemoryMemoRepository } from "../src/repository/memos.ts";
 import type { AuthClient, SessionUser } from "../src/clients/auth.ts";
 import type { MemoRecord } from "../src/domain/memo.ts";
 

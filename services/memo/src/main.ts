@@ -3,8 +3,8 @@
  * Listens on PORT (default 3002), runs migrations, validates sessions via Auth.
  */
 import { loadEnv } from "./env.ts";
-import { closeSql, createSql, runMigrations } from "./db/client.ts";
-import { createMemoRepository } from "./db/memos.ts";
+import { closeSql, createSql, runMigrations } from "./repository/client.ts";
+import { createMemoRepository } from "./repository/memos.ts";
 import { createAuthClient } from "./clients/auth.ts";
 import { createHandler } from "./app.ts";
 

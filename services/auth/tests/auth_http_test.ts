@@ -3,8 +3,8 @@
  */
 import { assertEquals, assertExists } from "@std/assert";
 import { createHandler } from "../src/app.ts";
-import { createMemoryUserRepository } from "../src/db/users.ts";
-import { createMemorySessionRepository } from "../src/db/sessions.ts";
+import { createMemoryUserRepository } from "../src/repository/users.ts";
+import { createMemorySessionRepository } from "../src/repository/sessions.ts";
 import { hashPassword } from "../src/domain/password.ts";
 
 const COOKIE = "playground_session";

@@ -5,7 +5,9 @@
   "description": "Authz learning playground — TypeSpec contracts and shared tooling",
   "scripts": {
     "generate": "bash tools/generate.sh",
-    "tsp:compile": "tsp compile specs --config specs/tspconfig.yaml"
+    "tsp:compile": "tsp compile specs --config specs/tspconfig.yaml",
+    "lint:architecture": "deno run -A --config tools/architecture-lint/deno.json tools/architecture-lint/run.ts",
+    "test:architecture-lint": "deno test -A --config tools/architecture-lint/deno.json tools/architecture-lint/"
   },
   "devDependencies": {
     "@typespec/compiler": "^1.14.0",
