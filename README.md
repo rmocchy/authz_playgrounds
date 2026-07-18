@@ -20,7 +20,7 @@
 
 混同しないこと: compose サービス名やパスに `idp` は使わない。
 
-## 起動（現状）
+## 起動
 
 1. 環境変数の雛形をコピーする:
 
@@ -28,13 +28,13 @@
 cp .env.example .env
 ```
 
-2. Compose 設定の確認:
+2. Compose 設定の確認（任意）:
 
 ```bash
 docker compose config
 ```
 
-3. 起動:
+3. スタック起動:
 
 ```bash
 docker compose up --build
@@ -42,14 +42,19 @@ docker compose up --build
 
 | サービス | コンテナ内ポート（固定） | ホスト公開（既定 / 上書き） | 備考 |
 |----------|---------------------------|-----------------------------|------|
-| Postgres (`db`) | 5432 | 5432 / `POSTGRES_PORT` | init で DB `auth` / `memo` を作成。**この PR で動作する** |
-| Auth | 3001 | 3001 / `AUTH_PORT` | プレースホルダ（後続 PR で実装） |
-| Memo | 3002 | 3002 / `MEMO_PORT` | プレースホルダ（後続 PR で実装） |
-| Web | 5173 | 5173 / `WEB_PORT` | プレースホルダ（後続 PR で実装） |
+| Postgres (`db`) | 5432 | 5432 / `POSTGRES_PORT` | init で DB `auth` / `memo` を作成 |
+| Auth | 3001 | 3001 / `AUTH_PORT` | ユーザー・セッション Cookie（`playground_session`） |
+| Memo | 3002 | 3002 / `MEMO_PORT` | メモ CRUD + 認可（global / secure） |
+| Web | 5173 | 5173 / `WEB_PORT` | Vite FE。proxy: `/api/auth` → Auth、`/api/memo` → Memo |
 
+ブラウザ: **http://localhost:5173**（ログイン / メモ UI）。  
 サービス間 URL は compose ネットワーク上の固定内部ポートを使う（例: `http://auth:3001`）。`*_PORT` はホスト側の公開ポートだけを変える。
 
-> **注意**: 現状の `auth` / `memo` / `web` は compose を通すための stub（`sleep infinity`）です。ログイン〜メモ CRUD は後続 PR で入り、その後に `docker compose up` で一通り再現できるようになります。Postgres の multi-DB 初期化はこの PR から有効です。
+詳細:
+
+- Auth: [`services/auth/README.md`](services/auth/README.md)
+- Memo: [`services/memo/README.md`](services/memo/README.md)
+- Web（proxy / Cookie）: [`services/web/README.md`](services/web/README.md)
 
 停止・ボリューム削除:
 
