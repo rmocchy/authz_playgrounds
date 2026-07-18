@@ -6,7 +6,7 @@
 
 - 詳細ルールは `.grok/rules/` を読むこと（常時ロードされる）
 - **新規タスクは新しい branch を切り、実装・動作確認は worktree 上で行う**（人間の明示指示があればそれに従う）。詳細は `.grok/rules/branch-and-worktree.md`
-- 秘密情報（鍵・トークン・パスワード）をコミットしない
+- 秘密情報（鍵・トークン・パスワード）をコミットしない。検出: **`npm run lint:secrets`**（gitleaks + tracked `.env` 禁止）
 - 外部の実在システムへの攻撃・exploit 実装は禁止
 - 意図的な脆弱実装には、ファイル先頭または該当箇所に学習目的である旨を明示する
 
@@ -24,4 +24,4 @@
 - サーバー数増でコードベースが肥大しないよう、共有は `pkg/`、サービス固有は `services/` に閉じる
 - README のコピーではなく、行動可能な指示を優先する
 - 細則・例外・手順の詳細は `.grok/rules/` に従う
-- BE（auth / memo）は `handler` / `usecase` / `domain` / `repository` に分ける。記法・静的解析は **`npm run lint:all`**（`deno fmt` · `deno lint` · ESLint · Biome）。詳細: `docs/linting.md`
+- BE（auth / memo）は `handler` / `usecase` / `domain` / `repository` に分ける。記法・静的解析・秘密情報は **`npm run lint:all`**（`deno fmt` · `deno lint` · ESLint · Biome · gitleaks）。詳細: `docs/linting.md`

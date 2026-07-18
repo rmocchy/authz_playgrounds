@@ -1,0 +1,70 @@
+# Gitleaks config for authz_playgrounds.
+# Extends the default rule set; allowlists are playground-specific only.
+# https://github.com/gitleaks/gitleaks
+
+title = "authz-playgrounds"
+
+[extend]
+useDefault = true
+
+# --- Custom rules: env / credential hygiene beyond defaults ---------------
+
+[[rules]]
+id = "dotenv-secret-assignment"
+description = "Secret-like assignment in env files (password/token/key)"
+regex = '''(?i)(?:password|secret|token|api[_-]?key|access[_-]?key|private[_-]?key|auth[_-]?token)\s*=\s*['"]?([^\s#'"]{8,})'''
+path = '''(?i)(?:^|/)\.env(?:$|\.|/)'''
+keywords = ["password", "secret", "token", "api_key", "private_key"]
+
+[[rules]]
+id = "postgres-url-with-password"
+description = "Postgres connection string embedding a password"
+regex = '''(?i)postgres(?:ql)?://[^\s:'"]+:([^\s@'"]{4,})@'''
+keywords = ["postgres://", "postgresql://"]
+
+[[rules]]
+id = "generic-bearer-assignment"
+description = "Bearer / Authorization header material in source"
+regex = '''(?i)(?:authorization|bearer)\s*[=:]\s*['"]?(?:bearer\s+)?([A-Za-z0-9\-._~+/]{20,}={0,2})'''
+keywords = ["authorization", "bearer"]
+
+# --- Allowlists (placeholders & intentional public fixtures) --------------
+
+[[allowlists]]
+description = "Local playground placeholder credentials (never production)"
+regexTarget = "match"
+regexes = [
+  '''(?i)^changeme$''',
+  '''(?i)changeme''',
+  '''playground:changeme@''',
+  '''postgres://playground:changeme@''',
+]
+
+[[allowlists]]
+description = "Intentional public bcrypt fixture used for timing-safe dummy verify"
+paths = [
+  '''services/auth/src/domain/password\.ts$''',
+]
+regexes = [
+  '''\$2[aby]?\$\d{2}\$[./A-Za-z0-9]{53}''',
+]
+
+[[allowlists]]
+description = "Example / docs files that intentionally show placeholder env values"
+paths = [
+  '''\.env\.example$''',
+  '''(^|/)docs/''',
+  '''README\.md$''',
+  '''services/.*/README\.md$''',
+  '''docker-compose\.ya?ml$''',
+  '''docs/linting\.md$''',
+  '''docs/local-setup\.md$''',
+]
+
+[[allowlists]]
+description = "Lockfiles and generated OpenAPI noise"
+paths = [
+  '''package-lock\.json$''',
+  '''deno\.lock$''',
+  '''specs/tsp-output/''',
+]

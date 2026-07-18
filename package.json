@@ -11,10 +11,11 @@
     "fmt:deno:check": "deno fmt --check services/auth/src services/auth/tests services/memo/src services/memo/tests pkg/api-client",
     "fmt:web": "biome format --write services/web",
     "fmt:web:check": "biome format services/web",
-    "lint": "npm run lint:deno && npm run lint:eslint && npm run lint:web",
+    "lint": "npm run lint:deno && npm run lint:eslint && npm run lint:web && npm run lint:secrets",
     "lint:deno": "deno lint services/auth services/memo && deno lint --config pkg/api-client/deno.json pkg/api-client",
     "lint:eslint": "eslint services/auth/src services/memo/src",
     "lint:web": "biome check services/web",
+    "lint:secrets": "bash tools/ci/secret-scan.sh",
     "lint:size": "npm run lint:eslint",
     "lint:architecture": "npm run lint:eslint",
     "lint:all": "npm run fmt:deno:check && npm run lint && npm run fmt:web:check"

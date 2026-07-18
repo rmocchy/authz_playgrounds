@@ -43,14 +43,15 @@ docker compose up --build
 
 CI:
 
-- Unit / strict lint: [`.github/workflows/test.yml`](.github/workflows/test.yml) — typecheck / test / build に加え `deno fmt` · `deno lint` · ESLint · Biome
+- Unit / strict lint: [`.github/workflows/test.yml`](.github/workflows/test.yml) — typecheck / test / build に加え `deno fmt` · `deno lint` · ESLint · Biome · **gitleaks（secret scan）**
 - Mutation: [`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) — StrykerJS
 
 `docker compose build` はイメージ取得が重いため CI では回さず、手元確認とする（手順: [`docs/local-setup.md`](docs/local-setup.md)）。
 
 ```bash
-# 記法 + 静的解析（厳しめ一括）
+# 記法 + 静的解析 + 秘密情報スキャン（厳しめ一括）
 npm run lint:all
+npm run lint:secrets # gitleaks のみ（要: brew install gitleaks）
 npm run fmt          # 自動整形
 
 # Auth / Memo 単体（各サービスディレクトリ）
@@ -77,6 +78,7 @@ cd services/auth && npm run mutate:http
 | [`docs/secure-flag-future.md`](docs/secure-flag-future.md) | `secure` の初回意味とステップアップ拡張 |
 | [`docs/cookie-and-vite-proxy.md`](docs/cookie-and-vite-proxy.md) | Cookie + 同一オリジン proxy |
 | [`docs/mutation-testing.md`](docs/mutation-testing.md) | mutation の実行方法 |
+| [`docs/linting.md`](docs/linting.md) | 記法・lint・secret scan |
 | [`docs/acceptance-self-check.md`](docs/acceptance-self-check.md) | 設計 §10 受け入れ条件の自己チェック |
 
 ## ディレクトリ
