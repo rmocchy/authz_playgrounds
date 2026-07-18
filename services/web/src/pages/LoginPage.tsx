@@ -1,4 +1,9 @@
 import { useState, type FormEvent } from "react";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
+import Card from "react-bootstrap/Card";
+import Form from "react-bootstrap/Form";
+import Nav from "react-bootstrap/Nav";
 import { auth, errorMessage } from "../api/client";
 import type { SessionMe } from "../api/client";
 
@@ -34,60 +39,87 @@ export function LoginPage({ onLoggedIn }: Props) {
   }
 
   return (
-    <div className="panel auth-panel">
-      <h1>Authz Playground</h1>
-      <p className="lede">
-        Local login (not OIDC). Session cookie{" "}
-        <code>playground_session</code> is set by Auth via the Vite proxy.
-      </p>
+    <Card className="shadow-sm">
+      <Card.Body className="p-4">
+        <Card.Title as="h1" className="h3 mb-2">
+          Authz Playground
+        </Card.Title>
+        <Card.Text className="text-secondary mb-3">
+          Local login (not OIDC). Session cookie{" "}
+          <code>playground_session</code> is set by Auth via the Vite proxy.
+        </Card.Text>
 
-      <div className="tabs" role="tablist">
-        <button
-          type="button"
-          className={mode === "login" ? "tab active" : "tab"}
-          onClick={() => setMode("login")}
-        >
-          Login
-        </button>
-        <button
-          type="button"
-          className={mode === "register" ? "tab active" : "tab"}
-          onClick={() => setMode("register")}
-        >
-          Register
-        </button>
-      </div>
+        <Nav variant="tabs" className="mb-3" activeKey={mode}>
+          <Nav.Item>
+            <Nav.Link
+              eventKey="login"
+              onClick={() => setMode("login")}
+              disabled={busy}
+            >
+              Login
+            </Nav.Link>
+          </Nav.Item>
+          <Nav.Item>
+            <Nav.Link
+              eventKey="register"
+              onClick={() => setMode("register")}
+              disabled={busy}
+            >
+              Register
+            </Nav.Link>
+          </Nav.Item>
+        </Nav>
 
-      <form onSubmit={onSubmit} className="form">
-        <label>
-          Login ID
-          <input
-            autoComplete="username"
-            value={loginId}
-            onChange={(e) => setLoginId(e.target.value)}
-            required
-            minLength={1}
-            disabled={busy}
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={1}
-            disabled={busy}
-          />
-        </label>
-        {error && <p className="error" role="alert">{error}</p>}
-        {info && <p className="info">{info}</p>}
-        <button type="submit" disabled={busy || !loginId || !password}>
-          {busy ? "Working…" : mode === "login" ? "Log in" : "Register & log in"}
-        </button>
-      </form>
-    </div>
+        <Form onSubmit={onSubmit}>
+          <Form.Group className="mb-3" controlId="loginId">
+            <Form.Label>Login ID</Form.Label>
+            <Form.Control
+              autoComplete="username"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              required
+              minLength={1}
+              disabled={busy}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="password">
+            <Form.Label>Password</Form.Label>
+            <Form.Control
+              type="password"
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={1}
+              disabled={busy}
+            />
+          </Form.Group>
+          {error && (
+            <Alert variant="danger" className="py-2">
+              {error}
+            </Alert>
+          )}
+          {info && (
+            <Alert variant="success" className="py-2">
+              {info}
+            </Alert>
+          )}
+          <Button
+            type="submit"
+            variant="primary"
+            className="w-100"
+            disabled={busy || !loginId || !password}
+          >
+            {busy
+              ? "Working…"
+              : mode === "login"
+                ? "Log in"
+                : "Register & log in"}
+          </Button>
+        </Form>
+      </Card.Body>
+    </Card>
   );
 }

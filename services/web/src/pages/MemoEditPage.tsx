@@ -1,4 +1,13 @@
 import { useEffect, useState, type FormEvent } from "react";
+import MDEditor from "@uiw/react-md-editor";
+import "@uiw/react-md-editor/markdown-editor.css";
+import "@uiw/react-markdown-preview/markdown.css";
+import Alert from "react-bootstrap/Alert";
+import Button from "react-bootstrap/Button";
+import Card from "react-bootstrap/Card";
+import Form from "react-bootstrap/Form";
+import Spinner from "react-bootstrap/Spinner";
+import Stack from "react-bootstrap/Stack";
 import {
   errorMessage,
   memos,
@@ -101,89 +110,115 @@ export function MemoEditPage({ user, memoId, onDone, onSaved }: Props) {
 
   if (loading) {
     return (
-      <div className="panel">
-        <p className="muted">Loading memo…</p>
-      </div>
+      <Card className="shadow-sm">
+        <Card.Body className="text-secondary">
+          <Spinner animation="border" size="sm" className="me-2" />
+          Loading memo…
+        </Card.Body>
+      </Card>
     );
   }
 
   return (
-    <div className="panel">
-      <div className="row between">
-        <h2>
-          {isCreate ? "New memo" : readOnly ? "View memo" : "Edit memo"}
-        </h2>
-        <button type="button" className="ghost" onClick={onDone}>
-          ← Back
-        </button>
-      </div>
+    <Card className="shadow-sm">
+      <Card.Body>
+        <Stack
+          direction="horizontal"
+          className="justify-content-between align-items-center mb-3"
+        >
+          <Card.Title as="h2" className="h4 mb-0">
+            {isCreate ? "New memo" : readOnly ? "View memo" : "Edit memo"}
+          </Card.Title>
+          <Button variant="outline-secondary" size="sm" onClick={onDone}>
+            ← Back
+          </Button>
+        </Stack>
 
-      {readOnly && (
-        <p className="info">
-          You can read this memo (global &amp; non-secure) but only the owner
-          can edit or delete it.
-        </p>
-      )}
-
-      {error && <p className="error" role="alert">{error}</p>}
-
-      <form onSubmit={onSubmit} className="form">
-        <label>
-          Title
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            disabled={busy || readOnly}
-            placeholder="optional"
-          />
-        </label>
-        <label>
-          Body (Markdown)
-          <textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            required={!readOnly}
-            rows={12}
-            disabled={busy || readOnly}
-            placeholder="# hello"
-          />
-        </label>
-
-        <MemoFlags
-          global={global}
-          secure={secure}
-          disabled={busy || readOnly}
-          onChange={({ global: g, secure: s }) => {
-            setGlobal(g);
-            setSecure(s);
-          }}
-        />
-
-        {!readOnly && (
-          <div className="row actions">
-            <button type="submit" disabled={busy || (!body && isCreate)}>
-              {busy ? "Saving…" : isCreate ? "Create" : "Save"}
-            </button>
-            {!isCreate && isOwner && (
-              <button
-                type="button"
-                className="danger"
-                disabled={busy}
-                onClick={() => void onDelete()}
-              >
-                Delete
-              </button>
-            )}
-          </div>
+        {readOnly && (
+          <Alert variant="info" className="py-2">
+            You can read this memo (global &amp; non-secure) but only the owner
+            can edit or delete it.
+          </Alert>
         )}
-      </form>
 
-      {memo && (
-        <p className="meta muted">
-          id {memo.id} · owner {memo.ownerId === user.id ? "you" : memo.ownerId}{" "}
-          · updated {new Date(memo.updatedAt).toLocaleString()}
-        </p>
-      )}
-    </div>
+        {error && (
+          <Alert variant="danger" className="py-2">
+            {error}
+          </Alert>
+        )}
+
+        <Form onSubmit={onSubmit}>
+          <Form.Group className="mb-3" controlId="memo-title">
+            <Form.Label>Title</Form.Label>
+            <Form.Control
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={busy || readOnly}
+              placeholder="optional"
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3" controlId="memo-body">
+            <Form.Label>Body (Markdown)</Form.Label>
+            <div data-color-mode="light" className="memo-md-editor">
+              <MDEditor
+                value={body}
+                onChange={(v) => setBody(v ?? "")}
+                height={320}
+                preview={readOnly ? "preview" : "live"}
+                hideToolbar={readOnly}
+                textareaProps={{
+                  placeholder: "# hello",
+                  disabled: busy || readOnly,
+                  required: !readOnly,
+                }}
+              />
+            </div>
+          </Form.Group>
+
+          <div className="mb-3">
+            <MemoFlags
+              global={global}
+              secure={secure}
+              disabled={busy || readOnly}
+              onChange={({ global: g, secure: s }) => {
+                setGlobal(g);
+                setSecure(s);
+              }}
+            />
+          </div>
+
+          {!readOnly && (
+            <Stack direction="horizontal" gap={2}>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={busy || (!body && isCreate)}
+              >
+                {busy ? "Saving…" : isCreate ? "Create" : "Save"}
+              </Button>
+              {!isCreate && isOwner && (
+                <Button
+                  type="button"
+                  variant="outline-danger"
+                  disabled={busy}
+                  onClick={() => void onDelete()}
+                >
+                  Delete
+                </Button>
+              )}
+            </Stack>
+          )}
+        </Form>
+
+        {memo && (
+          <p className="text-secondary small mt-3 mb-0">
+            id {memo.id} · owner{" "}
+            {memo.ownerId === user.id ? "you" : memo.ownerId} · updated{" "}
+            {new Date(memo.updatedAt).toLocaleString()}
+          </p>
+        )}
+      </Card.Body>
+    </Card>
   );
 }
