@@ -32,7 +32,7 @@ export default tseslint.config(
       "**/.stryker-tmp/**",
       "services/web/**",
       "tools/**",
-      "specs/**",
+      "doc/**",
     ],
   },
   {

@@ -4,7 +4,7 @@
   "private": true,
   "description": "Authz learning playground — TypeSpec contracts and shared tooling",
   "scripts": {
-    "generate": "tsp compile specs --config specs/tspconfig.yaml",
+    "generate": "tsp compile doc --config doc/tspconfig.yaml",
     "tsp:compile": "npm run generate",
     "fmt": "npm run fmt:deno && npm run fmt:web",
     "fmt:deno": "deno fmt services/auth/src services/auth/tests services/memo/src services/memo/tests pkg/api-client",

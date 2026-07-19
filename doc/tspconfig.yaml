@@ -1,16 +1,16 @@
 # TypeSpec compiler config for Authz Playground contracts.
 # Run from repo root: npm run generate
-# Or: npx tsp compile specs --config specs/tspconfig.yaml
+# Or: npx tsp compile doc --config doc/tspconfig.yaml
 
 emit:
   - "@typespec/openapi3"
 
 options:
   "@typespec/openapi3":
-    emitter-output-dir: "{project-root}/tsp-output/openapi"
+    emitter-output-dir: "{project-root}/openapi"
     # OpenAPI 3.0 for broad client/tool compatibility
     openapi-versions:
       - 3.0.0
 
-# Output lives under specs/tsp-output (gitignored or committed as needed).
+# Output lives under doc/openapi (gitignored or committed as needed).
 # Hand-maintained Deno-friendly client is in pkg/api-client/ (committed).

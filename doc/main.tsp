@@ -7,8 +7,8 @@
  *
  * Session cookie: playground_session (HttpOnly; Path=/; SameSite=Lax)
  *
- * Generate: `npm run generate` (or `npx tsp compile specs`)
- * Generated output: OpenAPI under `specs/tsp-output/openapi/`
+ * Generate: `npm run generate` (or `npx tsp compile doc`)
+ * Generated output: OpenAPI under `doc/openapi/`
  * Hand-synced client: `pkg/api-client/` (Deno-friendly fetch wrappers; update when paths/shapes change)
  */
 import "@typespec/http";

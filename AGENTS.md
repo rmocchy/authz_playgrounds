@@ -16,6 +16,7 @@
 |------|------|
 | `services/` | 各サービス実装（Auth / Memo / 将来の IdP・RP など） |
 | `pkg/` | サービス横断の共有ライブラリ |
+| `doc/` | TypeSpec 契約・生成 OpenAPI（`doc/openapi/`） |
 | `db/` | Postgres init（`db/init`）と migration（`db/migration/{auth,memo}`） |
 | `docs/` | 学習メモ・実装後の解説（Design Doc の置き場ではない） |
 | `projects/` | 企画・設計（`draft.md` / `prd.md` / **`design.md`**）。トピックごとにサブディレクトリ |

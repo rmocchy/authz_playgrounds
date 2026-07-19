@@ -24,7 +24,7 @@ coverage/
 .vite/
 .turbo/
 
-# TypeSpec (compiled OpenAPI under specs/tsp-output is committed)
+# TypeSpec (compiled OpenAPI under doc/openapi is committed)
 .tsp/
 *.tsp.js
 

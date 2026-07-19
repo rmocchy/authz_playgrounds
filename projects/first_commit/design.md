@@ -110,7 +110,7 @@
 
 | コンポーネント | 配置 | 責務 |
 |----------------|------|------|
-| TypeSpec 契約 | `specs/`（repo 直下） | Auth / Memo の HTTP API 定義。生成物のソース・オブ・トゥルース |
+| TypeSpec 契約 | `doc/`（repo 直下） | Auth / Memo の HTTP API 定義。生成物のソース・オブ・トゥルース |
 | 生成クライアント等 | `pkg/api-client/` など | TypeSpec generator 出力。FE・サービスから参照 |
 | 共有ユーティリティ | `pkg/`（必要最小限） | 例: Cookie 名定数、エラー型。**ビジネスロジックは置かない**。`pkg` → `services` 依存は禁止 |
 | **Auth**（認証認可基盤） | `services/auth/` | アプリユーザー、パスワード検証、セッション発行/破棄/検証。将来の認可拡張の受け皿 |
@@ -126,7 +126,7 @@
 
 ### 6.2 ファイル構成
 
-初回実装後のリポジトリ骨格（案）。実装時にファイル名を微調整してよいが、**トップレベルと `services/` / `pkg/` / `specs/` の境界は守る**。
+初回実装後のリポジトリ骨格（案）。実装時にファイル名を微調整してよいが、**トップレベルと `services/` / `pkg/` / `doc/` の境界は守る**。
 
 ```
 authz_playgrounds/
@@ -145,7 +145,7 @@ authz_playgrounds/
 │
 ├── docs/                        # 学習メモ・実装後の解説（Design Doc 置き場ではない）
 │
-├── specs/                       # TypeSpec ソース・オブ・トゥルース
+├── doc/                         # TypeSpec ソース・オブ・トゥルース + 生成 OpenAPI
 │   ├── main.tsp
 │   ├── tspconfig.yaml           # generator 設定
 │   ├── common/
@@ -154,8 +154,10 @@ authz_playgrounds/
 │   │   ├── auth.tsp             # register / login / logout
 │   │   ├── sessions.tsp         # sessions/me
 │   │   └── users.tsp            # 必要なら
-│   └── memo/
-│       └── memos.tsp
+│   ├── memo/
+│   │   └── memos.tsp
+│   └── openapi/
+│       └── openapi.yaml         # tsp emit 成果物
 │
 ├── pkg/                         # 共有のみ。services への依存禁止
 │   ├── api-client/              # TypeSpec 生成クライアント（コミットする）
@@ -242,9 +244,7 @@ authz_playgrounds/
 │           └── components/
 │               └── MemoFlags.tsx  # global / secure トグル
 │
-└── tools/                       # 任意
-    ├── generate.sh              # TypeSpec → pkg/api-client
-    └── mutate.sh                # mutation テスト起動
+└── （生成）                       # `npm run generate` → TypeSpec (`doc/`) → OpenAPI (`doc/openapi/`)
 ```
 
 #### 配置ルール（要約）
@@ -253,7 +253,7 @@ authz_playgrounds/
 |--------|----------|--------------|
 | `services/<name>/` | そのサービス固有のルート・DB・Dockerfile・テスト | 他サービス実装の import |
 | `pkg/` | 生成クライアント、サービス横断の薄い定数/型 | 認可ビジネスロジック、DB アクセス |
-| `specs/` | TypeSpec 定義のみ | ランタイム実装 |
+| `doc/` | TypeSpec 定義のみ | ランタイム実装 |
 | `projects/` | draft / design | 実行コード |
 | `docs/` | 学習メモ・解説 | 初回の Design Doc（本ファイルは `projects/`） |
 | repo ルート | compose、`.env.example`、全体 README | サービス固有ロジック |
@@ -261,7 +261,7 @@ authz_playgrounds/
 #### 依存の向き
 
 ```
-services/web  ──imports──►  pkg/api-client  ◄──generate──  specs/
+services/web  ──imports──►  pkg/api-client  ◄──generate──  doc/
 services/memo ──imports──►  pkg/api-client（任意）
 services/memo ──HTTP────►  services/auth     （コード依存ではなく実行時）
 services/*    ──禁止────►  他 services/* のソース import
@@ -576,15 +576,15 @@ updated_at TIMESTAMPTZ NOT NULL
 
 ### PR 1: Repository foundation (compose, env, skeleton)
 
-- **Files/components affected:** docker-compose.yml, .env.example, .gitignore, README.md, db/init/01-create-databases.sql, services/auth/.gitkeep, services/memo/.gitkeep, services/web/.gitkeep, pkg/.gitkeep, specs/.gitkeep, docs/.gitkeep
+- **Files/components affected:** docker-compose.yml, .env.example, .gitignore, README.md, db/init/01-create-databases.sql, services/auth/.gitkeep, services/memo/.gitkeep, services/web/.gitkeep, pkg/.gitkeep, doc/.gitkeep, docs/.gitkeep
 - **Dependencies:** None
 - **Description:** Docker Compose で Postgres（auth/memo 2 DB init）、auth/memo/web サービス骨格、`.env.example`、`.gitignore`、ルート README の起動入口を置く。サービス固有ロジックは入れない。DB 分割とポート案（Auth 3001 / Memo 3002 / Web 5173 / Postgres 5432）を反映する。
 
 ### PR 2: TypeSpec contracts and generated api-client
 
-- **Files/components affected:** specs/main.tsp, specs/tspconfig.yaml, specs/common/errors.tsp, specs/auth/auth.tsp, specs/auth/sessions.tsp, specs/memo/memos.tsp, pkg/api-client/, tools/generate.sh, package.json (optional root generate scripts)
+- **Files/components affected:** doc/main.tsp, doc/tspconfig.yaml, doc/common/errors.tsp, doc/auth/auth.tsp, doc/auth/sessions.tsp, doc/memo/memos.tsp, pkg/api-client/, package.json (`npm run generate`)
 - **Dependencies:** PR 1
-- **Description:** Auth（register/login/logout/sessions/me）と Memo CRUD の HTTP 契約を TypeSpec で定義し、generator で `pkg/api-client` に TS クライアント/型を生成してコミットする。生成手順を `tools/generate.sh` に固定する。
+- **Description:** Auth（register/login/logout/sessions/me）と Memo CRUD の HTTP 契約を TypeSpec で定義し、OpenAPI を `doc/openapi/` に emit する。`pkg/api-client` は契約に合わせて手同期し、生成は `npm run generate` で行う。
 
 ### PR 3: Auth service (users, sessions, password hash)
 
