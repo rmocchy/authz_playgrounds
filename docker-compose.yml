@@ -1,11 +1,17 @@
 # Authz Playgrounds — local stack
-# Services: auth (app authz platform), memo, web, db
-# Full app behavior lands in later PRs; stubs keep compose valid.
+# Services: auth (app authz platform), memo, web, db, migrate-*
 #
 # Port contract:
 # - Container-internal listen ports are fixed (auth 3001, memo 3002, web 5173, db 5432).
 # - AUTH_PORT / MEMO_PORT / WEB_PORT / POSTGRES_PORT only remap the host publish side.
 # - Inter-service URLs always use compose DNS + internal ports (e.g. http://auth:3001).
+
+x-dbmate: &dbmate
+  image: amacneil/dbmate:2.34.1
+  restart: "no"
+  depends_on:
+    db:
+      condition: service_healthy
 
 services:
   db:
@@ -27,9 +33,30 @@ services:
       timeout: 5s
       retries: 10
 
+  # Schema migrations (dbmate). Auth/Memo apps do not run SQL migrations themselves.
+  migrate-auth:
+    <<: *dbmate
+    container_name: authz-migrate-auth
+    volumes:
+      - ./db/migration/auth:/migrations:ro
+    environment:
+      # Local Postgres has no TLS; dbmate requires sslmode=disable.
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgres://playground:changeme@db:5432/auth?sslmode=disable}
+    entrypoint: ["dbmate", "--migrations-dir", "/migrations", "--no-dump-schema"]
+    command: ["up"]
+
+  migrate-memo:
+    <<: *dbmate
+    container_name: authz-migrate-memo
+    volumes:
+      - ./db/migration/memo:/migrations:ro
+    environment:
+      DATABASE_URL: ${MEMO_DATABASE_URL:-postgres://playground:changeme@db:5432/memo?sslmode=disable}
+    entrypoint: ["dbmate", "--migrations-dir", "/migrations", "--no-dump-schema"]
+    command: ["up"]
+
   auth:
     build:
-      # Repo root so Dockerfile can COPY db/migration/auth
       context: .
       dockerfile: services/auth/Dockerfile
     container_name: authz-auth
@@ -39,7 +66,7 @@ services:
     environment:
       # Fixed container listen port (not AUTH_PORT — that is host-only)
       PORT: "3001"
-      DATABASE_URL: ${AUTH_DATABASE_URL:-postgres://playground:changeme@db:5432/auth}
+      DATABASE_URL: ${AUTH_DATABASE_URL:-postgres://playground:changeme@db:5432/auth?sslmode=disable}
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-playground_session}
       SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-604800}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
@@ -61,10 +88,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate-auth:
+        condition: service_completed_successfully
 
   memo:
     build:
-      # Repo root so Dockerfile can COPY db/migration/memo
       context: .
       dockerfile: services/memo/Dockerfile
     container_name: authz-memo
@@ -73,7 +101,7 @@ services:
       - "${MEMO_PORT:-3002}:3002"
     environment:
       PORT: "3002"
-      DATABASE_URL: ${MEMO_DATABASE_URL:-postgres://playground:changeme@db:5432/memo}
+      DATABASE_URL: ${MEMO_DATABASE_URL:-postgres://playground:changeme@db:5432/memo?sslmode=disable}
       # Compose-network hostname + fixed internal Auth port
       AUTH_BASE_URL: http://auth:3001
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-playground_session}
@@ -92,6 +120,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate-memo:
+        condition: service_completed_successfully
       auth:
         condition: service_started
 

@@ -1,8 +1,9 @@
 -- Memo DB schema
--- Applied on Memo service startup (services/memo → runMigrations).
+-- Applied by dbmate (see docker-compose migrate-memo / npm run db:migrate).
 -- owner_id is a logical FK to Auth users (no cross-DB physical FK).
 
-CREATE TABLE IF NOT EXISTS memos (
+-- migrate:up
+CREATE TABLE memos (
   id UUID PRIMARY KEY,
   owner_id UUID NOT NULL,
   title TEXT NOT NULL DEFAULT '',
@@ -13,6 +14,9 @@ CREATE TABLE IF NOT EXISTS memos (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS memos_owner_id_idx ON memos (owner_id);
-CREATE INDEX IF NOT EXISTS memos_readable_idx ON memos (is_global, is_secure)
+CREATE INDEX memos_owner_id_idx ON memos (owner_id);
+CREATE INDEX memos_readable_idx ON memos (is_global, is_secure)
   WHERE is_global = true AND is_secure = false;
+
+-- migrate:down
+DROP TABLE IF EXISTS memos;

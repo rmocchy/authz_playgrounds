@@ -90,8 +90,10 @@ deno task check
 
 ## Docker
 
-Built by root `docker-compose.yml` service `memo`. On start:
+Built by root `docker-compose.yml` service `memo`. Schema is applied by
+**dbmate** (`migrate-memo`) before this container starts (see [`db/README.md`](../../db/README.md)).
 
-1. Apply `db/migration/memo/*.sql`
-2. Serve on `0.0.0.0:3002`
-3. Calls Auth at `AUTH_BASE_URL` (`http://auth:3001` in compose)
+On start:
+
+1. Serve on `0.0.0.0:3002`
+2. Calls Auth at `AUTH_BASE_URL` (`http://auth:3001` in compose)

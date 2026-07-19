@@ -165,14 +165,14 @@ authz_playgrounds/
 │   └── shared/                  # 定数・小さな型のみ（任意）
 │       └── cookie.ts            # Cookie 名など
 │
-├── db/                          # DB 定義をリポジトリ直下に集約
+├── db/                          # DB 定義をリポジトリ直下に集約（dbmate）
 │   ├── init/
 │   │   └── 01-create-databases.sql   # CREATE DATABASE auth; memo;
 │   └── migration/
 │       ├── auth/
-│       │   └── 001_init.sql
+│       │   └── 20260719000001_init.sql
 │       └── memo/
-│           └── 001_init.sql
+│           └── 20260719000001_init.sql
 │
 ├── services/
 │   ├── auth/                    # 認証認可基盤（Deno）

@@ -1,52 +1,17 @@
 /**
  * Memo service entrypoint — CRUD + authorization matrix.
- * Listens on PORT (default 3002), runs migrations, validates sessions via Auth.
+ * Listens on PORT (default 3002), validates sessions via Auth.
+ * Schema migrations are applied by dbmate (compose migrate-memo), not here.
  */
 import { loadEnv } from "./env.ts";
-import { closeSql, createSql, runMigrations } from "./repository/client.ts";
+import { closeSql, createSql } from "./repository/client.ts";
 import { createMemoRepository } from "./repository/memos.ts";
 import { createAuthClient } from "./clients/auth.ts";
 import { createHandler } from "./app.ts";
 
-async function resolveMigrationsDir(): Promise<string> {
-  // Prefer CWD/migrations (Docker WORKDIR /app copies db/migration/memo here),
-  // then repo-relative db/migration/memo from this module (services/memo/src).
-  const moduleDir = new URL(".", import.meta.url).pathname;
-  const candidates = [
-    `${Deno.cwd()}/migrations`,
-    // src/ → repo root → db/migration/memo
-    `${moduleDir}../../../db/migration/memo`.replace(/\/+/g, "/"),
-  ];
-  const normalized = candidates.map((p) => {
-    try {
-      return Deno.realPathSync(p);
-    } catch {
-      return p;
-    }
-  });
-  const ordered = [...candidates, ...normalized];
-  for (const dir of ordered) {
-    try {
-      const st = await Deno.stat(dir);
-      if (st.isDirectory) {
-        return dir;
-      }
-    } catch {
-      // try next
-    }
-  }
-  throw new Error(
-    `migrations directory not found (tried: ${candidates.join(", ")})`,
-  );
-}
-
 async function main(): Promise<void> {
   const env = loadEnv();
   const sql = createSql(env.databaseUrl);
-
-  const migrationsDir = await resolveMigrationsDir();
-  console.log(`running migrations from ${migrationsDir}`);
-  await runMigrations(sql, migrationsDir);
 
   const memos = createMemoRepository(sql);
   const auth = createAuthClient({ baseUrl: env.authBaseUrl });

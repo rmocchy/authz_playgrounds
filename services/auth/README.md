@@ -73,8 +73,10 @@ deno task check
 
 ## Docker
 
-Built by root `docker-compose.yml` service `auth`. On start:
+Built by root `docker-compose.yml` service `auth`. Schema is applied by
+**dbmate** (`migrate-auth`) before this container starts (see [`db/README.md`](../../db/README.md)).
 
-1. Apply `db/migration/auth/*.sql`
-2. Optional seed
-3. Serve on `0.0.0.0:3001`
+On start:
+
+1. Optional seed (`SEED_LOGIN_ID` / `SEED_PASSWORD`)
+2. Serve on `0.0.0.0:3001`
