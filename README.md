@@ -50,6 +50,8 @@ CI:
 
 ```bash
 # 記法 + 静的解析 + 秘密情報スキャン（厳しめ一括）
+# git commit 時も pre-commit hook が同じ lint:all を自動実行する（npm install 後）
+npm install          # 依存 + core.hooksPath=.githooks
 npm run lint:all
 npm run lint:secrets # gitleaks のみ（要: brew install gitleaks）
 npm run fmt          # 自動整形

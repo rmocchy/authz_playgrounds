@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# pre-commit: run full lint + secret scan before allowing a commit.
+# Installed via: npm install (prepare) or `git config core.hooksPath .githooks`
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+if [[ "${SKIP_LINT_HOOK:-}" == "1" ]]; then
+  echo "pre-commit: SKIP_LINT_HOOK=1 — skipping lint:all (not for agents)"
+  exit 0
+fi
+
+if ! command -v npm >/dev/null 2>&1; then
+  echo "pre-commit: error: npm not found on PATH" >&2
+  exit 1
+fi
+
+if [[ ! -d node_modules ]]; then
+  echo "pre-commit: error: node_modules missing — run 'npm install' at repo root" >&2
+  exit 1
+fi
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: error: gitleaks not found on PATH (needed by lint:secrets)" >&2
+  echo "  install: brew install gitleaks" >&2
+  exit 1
+fi
+
+echo "==> pre-commit: npm run lint:all (fmt + lint + secrets)"
+npm run lint:all
+echo "==> pre-commit: ok"
