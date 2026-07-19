@@ -4,8 +4,8 @@
 import type { UserRepository } from "../repository/users.ts";
 import { hashPassword } from "../domain/password.ts";
 import {
-  toPublicUser,
   type PublicUser,
+  toPublicUser,
   type UserRecord,
 } from "../domain/user.ts";
 

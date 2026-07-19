@@ -21,25 +21,25 @@ const COOKIE_BOB = "playground_session=bob-session";
 
 function stubAuth(): AuthClient {
   return {
-    async getSessionMe(cookieHeader) {
+    getSessionMe(cookieHeader) {
       if (!cookieHeader) {
-        return {
-          ok: false,
+        return Promise.resolve({
+          ok: false as const,
           status: 401,
           message: "Missing or invalid session",
-        };
+        });
       }
       if (cookieHeader.includes("alice-session")) {
-        return { ok: true, user: ALICE };
+        return Promise.resolve({ ok: true as const, user: ALICE });
       }
       if (cookieHeader.includes("bob-session")) {
-        return { ok: true, user: BOB };
+        return Promise.resolve({ ok: true as const, user: BOB });
       }
-      return {
-        ok: false,
+      return Promise.resolve({
+        ok: false as const,
         status: 401,
         message: "Missing or invalid session",
-      };
+      });
     },
   };
 }

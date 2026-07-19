@@ -1,0 +1,14 @@
+{
+  "name": "@authz-playgrounds/auth-mutation",
+  "version": "0.1.0",
+  "private": true,
+  "description": "StrykerJS configs for Auth (Deno service; mutation harness only)",
+  "scripts": {
+    "mutate:domain": "stryker run stryker.domain.json",
+    "mutate:http": "stryker run stryker.http.json",
+    "mutate": "npm run mutate:domain && npm run mutate:http"
+  },
+  "devDependencies": {
+    "@stryker-mutator/core": "^9.2.0"
+  }
+}

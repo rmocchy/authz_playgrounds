@@ -3,12 +3,7 @@
  */
 import type { AppDeps } from "../deps.ts";
 import { parseCreateMemoInput } from "../domain/memo_input.ts";
-import {
-  badRequest,
-  jsonError,
-  jsonOk,
-  unauthorized,
-} from "../http/errors.ts";
+import { badRequest, jsonError, jsonOk, unauthorized } from "../http/errors.ts";
 import { readJsonBody } from "../http/json_body.ts";
 import { createMemo } from "../usecase/create_memo.ts";
 import { requireUser } from "../usecase/require_user.ts";

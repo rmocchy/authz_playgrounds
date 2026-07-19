@@ -29,16 +29,16 @@
  */
 
 export {
-  SESSION_COOKIE_NAME,
   type ClientOptions,
-  type Credentials,
   type CreateMemoRequest,
+  type Credentials,
   type ErrorBody,
   type ErrorCode,
   type HttpMethod,
   type Memo,
   type MemoList,
   type MemoListScope,
+  SESSION_COOKIE_NAME,
   type SessionMe,
   type UpdateMemoRequest,
   type User,
@@ -48,12 +48,12 @@ export { ApiError, isApiError } from "./error.ts";
 export { apiRequest, createHttp, joinUrl } from "./http.ts";
 
 export {
+  type AuthClient,
   createAuthClient,
   login,
   logout,
   me,
   register,
-  type AuthClient,
 } from "./auth.ts";
 
 export {
@@ -62,6 +62,6 @@ export {
   deleteMemo,
   getMemo,
   listMemos,
-  updateMemo,
   type MemoClient,
+  updateMemo,
 } from "./memo.ts";

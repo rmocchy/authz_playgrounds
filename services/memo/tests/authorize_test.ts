@@ -4,10 +4,10 @@
  */
 import { assertEquals } from "@std/assert";
 import {
-  canAccess,
-  decideAccess,
   type AuthzAction,
   type AuthzDecision,
+  canAccess,
+  decideAccess,
   type MemoAuthzFlags,
 } from "../src/domain/authorize.ts";
 

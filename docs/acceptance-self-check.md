@@ -35,7 +35,8 @@
 ## テスト・ドキュメント・秘密情報
 
 - [ ] 認可・password の単体テストがある（`authorize_test.ts` / `password_test.ts`）
-- [ ] mutation を実行できる: `./tools/mutate.sh`（閾値は初期は緩可）
+- [ ] mutation を実行できる: `cd services/memo && npm ci && npm run mutate:domain`（Stryker + deno test。閾値は初期は緩可）
+- [ ] CI で mutation レポート（HTML/JSON artifact）が出る（`.github/workflows/mutation.yml`）
 - [ ] [`docs/local-setup.md`](./local-setup.md) に Docker / ローカル起動手順と主要フローがある
 - [ ] Auth（アプリ基盤）と将来 IdP（Google/Okta 相当）の違いがドキュメントにある
 - [ ] 秘密鍵・本番相当パスワードが git に含まれない（`.env` は ignore）

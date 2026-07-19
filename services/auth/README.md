@@ -46,7 +46,7 @@ src/
   http/         # cookies, errors, shared request parsing
 ```
 
-Enforced by `tools/architecture-lint` (see root `npm run lint:architecture`).
+Size limits are enforced by ESLint (`max-lines` / `max-lines-per-function`; root `npm run lint:size`).
 
 ## Env
 

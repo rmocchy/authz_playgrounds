@@ -8,6 +8,14 @@ interface SessionRow {
   created_at: Date;
 }
 
+function requireFirstRow<T>(rows: T[], context: string): T {
+  const row = rows[0];
+  if (row === undefined) {
+    throw new Error(`expected row from ${context}`);
+  }
+  return row;
+}
+
 function mapSession(row: SessionRow): SessionRecord {
   return {
     id: row.id,
@@ -50,7 +58,7 @@ export function createSessionRepository(sql: Sql): SessionRepository {
         )
         RETURNING id, user_id, expires_at, created_at
       `;
-      return mapSession(rows[0]!);
+      return mapSession(requireFirstRow(rows, "sessions.insert"));
     },
 
     async findById(id: string): Promise<SessionRecord | null> {
@@ -93,15 +101,16 @@ export function createMemorySessionRepository(
   }
 
   return {
-    async insert(session: SessionRecord) {
+    insert(session: SessionRecord) {
       byId.set(session.id, session);
-      return session;
+      return Promise.resolve(session);
     },
-    async findById(id: string) {
-      return byId.get(id) ?? null;
+    findById(id: string) {
+      return Promise.resolve(byId.get(id) ?? null);
     },
-    async deleteById(id: string) {
+    deleteById(id: string) {
       byId.delete(id);
+      return Promise.resolve();
     },
   };
 }

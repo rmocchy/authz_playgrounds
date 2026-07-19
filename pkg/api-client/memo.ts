@@ -25,7 +25,7 @@ export function createMemoClient(options: ClientOptions = {}): MemoClient {
   const http = createHttp(options);
 
   return {
-    async list(scope: MemoListScope = "mine"): Promise<MemoList> {
+    list(scope: MemoListScope = "mine"): Promise<MemoList> {
       return http.request<MemoList>({
         method: "GET",
         path: "/v1/memos",
@@ -33,7 +33,7 @@ export function createMemoClient(options: ClientOptions = {}): MemoClient {
       });
     },
 
-    async create(body: CreateMemoRequest): Promise<Memo> {
+    create(body: CreateMemoRequest): Promise<Memo> {
       return http.request<Memo>({
         method: "POST",
         path: "/v1/memos",
@@ -41,14 +41,14 @@ export function createMemoClient(options: ClientOptions = {}): MemoClient {
       });
     },
 
-    async get(id: string): Promise<Memo> {
+    get(id: string): Promise<Memo> {
       return http.request<Memo>({
         method: "GET",
         path: `/v1/memos/${encodeURIComponent(id)}`,
       });
     },
 
-    async update(id: string, body: UpdateMemoRequest): Promise<Memo> {
+    update(id: string, body: UpdateMemoRequest): Promise<Memo> {
       return http.request<Memo>({
         method: "PATCH",
         path: `/v1/memos/${encodeURIComponent(id)}`,
@@ -56,7 +56,7 @@ export function createMemoClient(options: ClientOptions = {}): MemoClient {
       });
     },
 
-    async delete(id: string): Promise<void> {
+    delete(id: string): Promise<void> {
       return http.request<void>({
         method: "DELETE",
         path: `/v1/memos/${encodeURIComponent(id)}`,
@@ -66,28 +66,28 @@ export function createMemoClient(options: ClientOptions = {}): MemoClient {
   };
 }
 
-export async function listMemos(
+export function listMemos(
   scope?: MemoListScope,
   options?: ClientOptions,
 ): Promise<MemoList> {
   return createMemoClient(options).list(scope);
 }
 
-export async function createMemo(
+export function createMemo(
   body: CreateMemoRequest,
   options?: ClientOptions,
 ): Promise<Memo> {
   return createMemoClient(options).create(body);
 }
 
-export async function getMemo(
+export function getMemo(
   id: string,
   options?: ClientOptions,
 ): Promise<Memo> {
   return createMemoClient(options).get(id);
 }
 
-export async function updateMemo(
+export function updateMemo(
   id: string,
   body: UpdateMemoRequest,
   options?: ClientOptions,
@@ -95,7 +95,7 @@ export async function updateMemo(
   return createMemoClient(options).update(id, body);
 }
 
-export async function deleteMemo(
+export function deleteMemo(
   id: string,
   options?: ClientOptions,
 ): Promise<void> {

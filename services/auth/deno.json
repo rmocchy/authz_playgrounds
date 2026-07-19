@@ -7,7 +7,10 @@
     "dev": "deno run -A --watch src/main.ts",
     "test": "deno test -A tests/",
     "check": "deno check src/main.ts",
-    "lint:architecture": "deno run -A --config ../../tools/architecture-lint/deno.json ../../tools/architecture-lint/run.ts --service auth"
+    "lint:size": "npm --prefix ../.. run lint:eslint -- services/auth/src",
+    "lint": "deno lint src/ tests/",
+    "fmt": "deno fmt src/ tests/ README.md",
+    "fmt:check": "deno fmt --check src/ tests/ README.md"
   },
   "imports": {
     "postgres": "npm:postgres@3.4.5",
@@ -15,8 +18,27 @@
     "@std/assert": "jsr:@std/assert@1",
     "@std/uuid": "jsr:@std/uuid@1"
   },
+  "nodeModulesDir": "auto",
   "compilerOptions": {
     "strict": true,
-    "lib": ["deno.window", "deno.unstable"]
+    "lib": [
+      "deno.window",
+      "deno.unstable"
+    ]
+  },
+  "lint": {
+    "rules": {
+      "tags": [
+        "recommended"
+      ]
+    }
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "always"
   }
 }

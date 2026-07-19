@@ -4,7 +4,7 @@
 import type { MemoRepository } from "../repository/memos.ts";
 import { decideAccess } from "../domain/authorize.ts";
 import { isUuid } from "../domain/id.ts";
-import { toMemoJson, type MemoJson } from "../domain/memo.ts";
+import { type MemoJson, toMemoJson } from "../domain/memo.ts";
 
 export interface GetMemoDeps {
   memos: MemoRepository;

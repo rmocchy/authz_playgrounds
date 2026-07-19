@@ -52,8 +52,12 @@ export function loadEnv(
 
   return {
     port,
-    databaseUrl: requireString("DATABASE_URL", "postgres://playground:changeme@localhost:5432/auth"),
-    sessionCookieName: source.get("SESSION_COOKIE_NAME") || "playground_session",
+    databaseUrl: requireString(
+      "DATABASE_URL",
+      "postgres://playground:changeme@localhost:5432/auth",
+    ),
+    sessionCookieName: source.get("SESSION_COOKIE_NAME") ||
+      "playground_session",
     sessionTtlMs: Math.floor(ttlSeconds * 1000),
     cookieSecure: parseBool(source.get("COOKIE_SECURE"), false),
     seedLoginId: source.get("SEED_LOGIN_ID") || null,

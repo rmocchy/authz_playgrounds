@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { auth, errorMessage, isApiError, type SessionMe } from "./api/client";
 import { LoginPage } from "./pages/LoginPage";
-import { MemoListPage } from "./pages/MemoListPage";
 import { MemoEditPage } from "./pages/MemoEditPage";
+import { MemoListPage } from "./pages/MemoListPage";
 
 type Route =
   | { name: "list" }
@@ -61,7 +61,11 @@ export function App() {
   if (!user) {
     return (
       <div className="app shell">
-        {banner && <p className="error" role="alert">{banner}</p>}
+        {banner && (
+          <p className="error" role="alert">
+            {banner}
+          </p>
+        )}
         <LoginPage
           onLoggedIn={(u) => {
             setBanner(null);
@@ -85,7 +89,11 @@ export function App() {
         </button>
       </header>
 
-      {banner && <p className="error" role="alert">{banner}</p>}
+      {banner && (
+        <p className="error" role="alert">
+          {banner}
+        </p>
+      )}
 
       {route.name === "list" && (
         <MemoListPage

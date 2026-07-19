@@ -175,7 +175,9 @@ Deno.test("logout clears session; me then 401; logout idempotent", async () => {
   const clear = logoutRes.headers.get("set-cookie")!;
   assertEquals(clear.includes("Max-Age=0"), true);
 
-  const meRes = await handler(jsonReq("GET", "/v1/sessions/me", undefined, cookie));
+  const meRes = await handler(
+    jsonReq("GET", "/v1/sessions/me", undefined, cookie),
+  );
   assertEquals(meRes.status, 401);
 
   const again = await handler(jsonReq("POST", "/v1/auth/logout"));

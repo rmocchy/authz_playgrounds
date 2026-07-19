@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   errorMessage,
-  memos,
   type Memo,
   type MemoListScope,
+  memos,
   type SessionMe,
 } from "../api/client";
 
@@ -82,7 +82,11 @@ export function MemoListPage({ user, onCreate, onOpen }: Props) {
           : " — only your memos"}
       </p>
 
-      {error && <p className="error" role="alert">{error}</p>}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
       {loading && <p className="muted">Loading…</p>}
 
       {!loading && items.length === 0 && (

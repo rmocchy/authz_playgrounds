@@ -4,6 +4,8 @@
  * DB columns use snake_case (owner_id, is_global, is_secure).
  */
 
+export type MemoListScope = "mine" | "readable";
+
 export interface MemoRecord {
   id: string;
   ownerId: string;

@@ -3,11 +3,11 @@
  * Browser talks same-origin → cookie playground_session works without CORS.
  */
 import {
+  type CreateMemoRequest,
+  type Credentials,
   createAuthClient,
   createMemoClient,
   isApiError,
-  type Credentials,
-  type CreateMemoRequest,
   type Memo,
   type MemoListScope,
   type SessionMe,
@@ -15,16 +15,16 @@ import {
   type User,
 } from "@api-client/mod.ts";
 
-export { isApiError };
 export type {
-  Credentials,
   CreateMemoRequest,
+  Credentials,
   Memo,
   MemoListScope,
   SessionMe,
   UpdateMemoRequest,
   User,
 };
+export { isApiError };
 
 /** Auth API via Vite proxy: /api/auth → Auth service */
 export const auth = createAuthClient({

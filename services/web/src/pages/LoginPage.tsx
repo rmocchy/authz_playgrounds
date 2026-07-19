@@ -1,6 +1,6 @@
-import { useState, type FormEvent } from "react";
-import { auth, errorMessage } from "../api/client";
+import { type FormEvent, useState } from "react";
 import type { SessionMe } from "../api/client";
+import { auth, errorMessage } from "../api/client";
 
 type Props = {
   onLoggedIn: (user: SessionMe) => void;
@@ -37,8 +37,8 @@ export function LoginPage({ onLoggedIn }: Props) {
     <div className="panel auth-panel">
       <h1>Authz Playground</h1>
       <p className="lede">
-        Local login (not OIDC). Session cookie{" "}
-        <code>playground_session</code> is set by Auth via the Vite proxy.
+        Local login (not OIDC). Session cookie <code>playground_session</code>{" "}
+        is set by Auth via the Vite proxy.
       </p>
 
       <div className="tabs" role="tablist">
@@ -74,7 +74,9 @@ export function LoginPage({ onLoggedIn }: Props) {
           Password
           <input
             type="password"
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            autoComplete={
+              mode === "login" ? "current-password" : "new-password"
+            }
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -82,10 +84,18 @@ export function LoginPage({ onLoggedIn }: Props) {
             disabled={busy}
           />
         </label>
-        {error && <p className="error" role="alert">{error}</p>}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
         {info && <p className="info">{info}</p>}
         <button type="submit" disabled={busy || !loginId || !password}>
-          {busy ? "Working…" : mode === "login" ? "Log in" : "Register & log in"}
+          {busy
+            ? "Working…"
+            : mode === "login"
+              ? "Log in"
+              : "Register & log in"}
         </button>
       </form>
     </div>

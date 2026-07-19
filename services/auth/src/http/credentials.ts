@@ -1,7 +1,7 @@
 /**
  * Shared request-body parsing for loginId + password credentials.
  * Lives under http/ (not handler/) so both register and login handlers
- * can share it without violating single-export-per-handler.
+ * can share it without bloating individual handlers.
  */
 import {
   isValidLoginId,
@@ -31,7 +31,10 @@ export async function parseCredentials(req: Request): Promise<Credentials> {
   const loginId = normalizeLoginId(rec.loginId);
   const password = rec.password;
   if (!isValidLoginId(loginId)) {
-    return { ok: false, message: "loginId must be 1–128 characters after trim" };
+    return {
+      ok: false,
+      message: "loginId must be 1–128 characters after trim",
+    };
   }
   if (!isValidPassword(password)) {
     return {

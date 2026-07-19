@@ -22,16 +22,18 @@ export const DUMMY_PASSWORD_HASH =
   "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
 /** Hash a plaintext password for storage. Never store plaintext. */
-export async function hashPassword(plaintext: string): Promise<string> {
+export function hashPassword(plaintext: string): Promise<string> {
   if (plaintext.length < 1) {
-    throw new Error("password must be non-empty");
+    return Promise.reject(new Error("password must be non-empty"));
   }
   if (plaintext.length > BCRYPT_MAX_PASSWORD_LENGTH) {
-    throw new Error(
-      `password must be at most ${BCRYPT_MAX_PASSWORD_LENGTH} characters (bcrypt limit)`,
+    return Promise.reject(
+      new Error(
+        `password must be at most ${BCRYPT_MAX_PASSWORD_LENGTH} characters (bcrypt limit)`,
+      ),
     );
   }
-  return await bcrypt.hash(plaintext, BCRYPT_ROUNDS);
+  return bcrypt.hash(plaintext, BCRYPT_ROUNDS);
 }
 
 /** Constant-time verify of plaintext against a stored bcrypt hash. */
@@ -41,7 +43,10 @@ export async function verifyPassword(
 ): Promise<boolean> {
   if (!passwordHash) return false;
   try {
-    return await bcrypt.compare(plaintext, passwordHash);
+    // Bind to a local so no-return-await is satisfied, while still awaiting so
+    // both sync throws and async rejections from bcrypt.compare are caught.
+    const matched = await bcrypt.compare(plaintext, passwordHash);
+    return matched;
   } catch {
     return false;
   }
