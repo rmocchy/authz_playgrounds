@@ -48,10 +48,12 @@
    - 既に PR があり追加コミットだけなら、push で足りる（新規 PR は不要）。  
    - base は通常 `main`。スタックする場合は依存 branch を base にする。  
    - タイトル・本文に変更概要と test plan を書く。  
-   - 作成後、PR URL をユーザーに伝える。
+   - 作成後、PR URL をユーザーに伝える。  
+   - **PR の merge はしない**（ユーザー明示時のみ。詳細: [git-finish.md](./git-finish.md)）。
 
 4. **worktree の片付け**  
-   - マージや PR 方針が決まったあとで `git worktree remove` 等により片付ける（ユーザー方針があればそれに従う）。  
+   - **ユーザーが merge したあと**、または片付け指示があったあとで `git worktree remove` 等により片付ける。  
+   - エージェントが PR を merge してから片付ける、という流れにはしない。  
    - 未コミットの変更を残したまま worktree を捨てない。
 
 ### 例外
@@ -65,5 +67,6 @@
 
 - 無関係な branch にコミットを混ぜない。  
 - force-push や共有 branch の書き換えは、ユーザーの明示なしに行わない。  
+- **PR / main への merge はユーザー明示なしに行わない**（`gh pr merge` 等）。「進めて」だけでは merge しない。  
 - 秘密情報を branch 名・worktree パス・コミットに含めない。  
 - pre-commit を避けるための `--no-verify` / `SKIP_LINT_HOOK=1` をエージェントは使わない。
