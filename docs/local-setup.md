@@ -97,11 +97,14 @@ open http://localhost:5173
 docker compose logs -f auth memo web db
 ```
 
+起動時、`migrate-auth` / `migrate-memo`（dbmate）が schema を適用してから auth / memo が立ち上がる。  
+migration の手実行・rollback: [`../db/README.md`](../db/README.md) または `npm run db:migrate` / `db:status`。
+
 ### 1.4 停止
 
 ```bash
 docker compose down
-# DB ボリュームごと消して init からやり直す場合
+# DB ボリュームごと消して init + migration からやり直す場合
 docker compose down -v
 ```
 
@@ -140,7 +143,17 @@ docker compose up -d db
 ```
 
 init スクリプトが DB `auth` / `memo` を作成する（初回ボリューム時）。  
-ホストからの接続例: `postgres://playground:changeme@localhost:5432/auth`
+ホストからの接続例: `postgres://playground:changeme@localhost:5432/auth?sslmode=disable`
+
+スキーマ migration は **dbmate**（compose の `migrate-auth` / `migrate-memo`）:
+
+```bash
+# db が healthy な状態で（リポジトリルート）
+npm run db:migrate
+npm run db:status
+```
+
+詳細: [`../db/README.md`](../db/README.md)
 
 ### 2.3 Auth（:3001）
 
@@ -149,7 +162,7 @@ cd services/auth
 # 必要なら: cp .env.example .env  を編集してから、ツールで読み込むか export する
 
 export PORT=3001
-export DATABASE_URL=postgres://playground:changeme@localhost:5432/auth
+export DATABASE_URL=postgres://playground:changeme@localhost:5432/auth?sslmode=disable
 export SESSION_COOKIE_NAME=playground_session
 export SESSION_TTL_SECONDS=604800
 export COOKIE_SECURE=false
@@ -171,7 +184,7 @@ deno task start
 cd services/memo
 
 export PORT=3002
-export DATABASE_URL=postgres://playground:changeme@localhost:5432/memo
+export DATABASE_URL=postgres://playground:changeme@localhost:5432/memo?sslmode=disable
 export AUTH_BASE_URL=http://localhost:3001
 export SESSION_COOKIE_NAME=playground_session
 

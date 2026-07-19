@@ -1,46 +1,14 @@
 /**
  * Auth service entrypoint — app authz platform (NOT an IdP).
- * Listens on PORT (default 3001), runs migrations, optional seed user.
+ * Listens on PORT (default 3001), optional seed user.
+ * Schema migrations are applied by dbmate (compose migrate-auth), not here.
  */
 import { loadEnv } from "./env.ts";
-import { closeSql, createSql, runMigrations } from "./repository/client.ts";
+import { closeSql, createSql } from "./repository/client.ts";
 import { createUserRepository } from "./repository/users.ts";
 import { createSessionRepository } from "./repository/sessions.ts";
 import { createHandler } from "./app.ts";
 import { hashPassword } from "./domain/password.ts";
-
-async function resolveMigrationsDir(): Promise<string> {
-  // Prefer CWD/migrations (Docker WORKDIR /app copies db/migration/auth here),
-  // then repo-relative db/migration/auth from this module (services/auth/src).
-  const moduleDir = new URL(".", import.meta.url).pathname;
-  const candidates = [
-    `${Deno.cwd()}/migrations`,
-    // src/ → repo root → db/migration/auth
-    `${moduleDir}../../../db/migration/auth`.replace(/\/+/g, "/"),
-  ];
-  // Normalize .. segments for file URL path
-  const normalized = candidates.map((p) => {
-    try {
-      return Deno.realPathSync(p);
-    } catch {
-      return p;
-    }
-  });
-  const ordered = [...candidates, ...normalized];
-  for (const dir of ordered) {
-    try {
-      const st = await Deno.stat(dir);
-      if (st.isDirectory) {
-        return dir;
-      }
-    } catch {
-      // try next
-    }
-  }
-  throw new Error(
-    `migrations directory not found (tried: ${candidates.join(", ")})`,
-  );
-}
 
 async function maybeSeed(
   users: ReturnType<typeof createUserRepository>,
@@ -65,10 +33,6 @@ async function maybeSeed(
 async function main(): Promise<void> {
   const env = loadEnv();
   const sql = createSql(env.databaseUrl);
-
-  const migrationsDir = await resolveMigrationsDir();
-  console.log(`running migrations from ${migrationsDir}`);
-  await runMigrations(sql, migrationsDir);
 
   const users = createUserRepository(sql);
   const sessions = createSessionRepository(sql);
