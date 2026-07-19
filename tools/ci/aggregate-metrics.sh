@@ -15,8 +15,10 @@ out_md="${3:-aggregated-metrics.md}"
 files_list="$(mktemp)"
 trap 'rm -f "$files_list"' EXIT
 
+# Prefer *metrics.json so large Stryker mutation.json / lcov sidecars are skipped.
 if [[ -d "$src" ]]; then
-  find "$src" -type f -name '*.json' | sort >"$files_list"
+  find "$src" -type f \( -name '*-metrics.json' -o -name '*metrics.json' \) \
+    | sort >"$files_list"
 else
   # shellcheck disable=SC2086
   compgen -G "$src" 2>/dev/null | sort >"$files_list" || true

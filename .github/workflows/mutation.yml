@@ -51,7 +51,7 @@ jobs:
         run: npm run mutate:domain
       - name: Mutation score
         if: always()
-        run: bash ../../tools/ci/mutation-report.sh memo-domain reports/mutation/domain/mutation.json reports/mutation/domain/mutation-metrics.json
+        run: bash ../../tools/ci/mutation-report.sh memo-domain reports/mutation/domain/mutation.json reports/mutation/domain/memo-domain-metrics.json
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,7 +91,7 @@ jobs:
         run: npm run mutate:http
       - name: Mutation score
         if: always()
-        run: bash ../../tools/ci/mutation-report.sh memo-http reports/mutation/http/mutation.json reports/mutation/http/mutation-metrics.json
+        run: bash ../../tools/ci/mutation-report.sh memo-http reports/mutation/http/mutation.json reports/mutation/http/memo-http-metrics.json
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
@@ -131,7 +131,7 @@ jobs:
         run: npm run mutate:domain
       - name: Mutation score
         if: always()
-        run: bash ../../tools/ci/mutation-report.sh auth-domain reports/mutation/domain/mutation.json reports/mutation/domain/mutation-metrics.json
+        run: bash ../../tools/ci/mutation-report.sh auth-domain reports/mutation/domain/mutation.json reports/mutation/domain/auth-domain-metrics.json
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
@@ -171,7 +171,7 @@ jobs:
         run: npm run mutate:http
       - name: Mutation score
         if: always()
-        run: bash ../../tools/ci/mutation-report.sh auth-http reports/mutation/http/mutation.json reports/mutation/http/mutation-metrics.json
+        run: bash ../../tools/ci/mutation-report.sh auth-http reports/mutation/http/mutation.json reports/mutation/http/auth-http-metrics.json
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
@@ -194,7 +194,7 @@ jobs:
         with:
           pattern: mutation-*-${{ github.run_id }}
           path: metrics-in
-          merge-multiple: true
+          merge-multiple: false
       - name: Aggregate
         run: bash tools/ci/aggregate-metrics.sh "Mutation test scores" metrics-in mutation-summary.md
       - name: Comment on PR
