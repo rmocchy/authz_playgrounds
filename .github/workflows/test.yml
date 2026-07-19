@@ -45,9 +45,13 @@ jobs:
             aarch64|arm64) gl_arch=arm64 ;;
             *) echo "unsupported arch: ${arch}"; exit 1 ;;
           esac
+          # Install to a user-writable dir (not /usr/local/bin, which is root-owned).
+          install_dir="${HOME}/.local/bin"
+          mkdir -p "${install_dir}"
           url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${gl_arch}.tar.gz"
-          curl -sSfL "${url}" | tar -xz -C /usr/local/bin gitleaks
-          gitleaks version
+          curl -sSfL "${url}" | tar -xz -C "${install_dir}" gitleaks
+          echo "${install_dir}" >> "${GITHUB_PATH}"
+          "${install_dir}/gitleaks" version
       - name: Deno format check
         run: npm run fmt:deno:check
       - name: Deno lint

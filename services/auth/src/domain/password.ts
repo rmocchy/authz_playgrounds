@@ -37,16 +37,17 @@ export function hashPassword(plaintext: string): Promise<string> {
 }
 
 /** Constant-time verify of plaintext against a stored bcrypt hash. */
-export function verifyPassword(
+export async function verifyPassword(
   plaintext: string,
   passwordHash: string,
 ): Promise<boolean> {
-  if (!passwordHash) {
-    return Promise.resolve(false);
-  }
+  if (!passwordHash) return false;
   try {
-    return bcrypt.compare(plaintext, passwordHash);
+    // Bind to a local so no-return-await is satisfied, while still awaiting so
+    // both sync throws and async rejections from bcrypt.compare are caught.
+    const matched = await bcrypt.compare(plaintext, passwordHash);
+    return matched;
   } catch {
-    return Promise.resolve(false);
+    return false;
   }
 }

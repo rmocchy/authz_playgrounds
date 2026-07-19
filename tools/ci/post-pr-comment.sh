@@ -41,10 +41,16 @@ body="$(cat "$body_file")
 ${marker}
 "
 
-# Find existing comment by this bot containing the marker
+# Find existing sticky comment from github-actions only (never patch humans).
+# Pass marker via env so jq does not break on quotes in the marker string.
 existing_id="$(
-  gh api "repos/${repo}/issues/${pr_number}/comments" --paginate \
-    --jq ".[] | select(.body | contains(\"${marker}\")) | .id" \
+  MARKER="${marker}" gh api "repos/${repo}/issues/${pr_number}/comments" --paginate \
+    --jq '
+      .[]
+      | select(.user.login == "github-actions[bot]")
+      | select(.body | contains(env.MARKER))
+      | .id
+    ' \
     | head -n1
 )"
 
