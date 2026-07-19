@@ -28,12 +28,37 @@ Auth / Memo / Web / Postgres を手元で動かす手順。
 
 | 起動方法 | 必要もの |
 |----------|----------|
-| Docker Compose 一括 | Docker + Docker Compose（Colima / Docker Desktop 等） |
+| Docker Compose 一括 | Docker + Docker Compose（Colima / Docker Desktop 等）。**Colima では `docker-buildx` も推奨**（下表・トラブルシュート） |
 | ローカル（Auth / Memo） | [Deno](https://deno.land/) **2.9+**（`deno.lock` は version 5） |
 | ローカル（Web） | Node.js **22+** と npm |
 | ローカル時の DB | 下記のとおり Compose の `db`、または同等の Postgres |
 
 Auth / Memo の Dockerfile は `denoland/deno:2.9.2` を使用する。これより古い base イメージだと lockfile v5 を読めず `docker compose build` が失敗する。
+
+### Colima + buildx（macOS Homebrew）
+
+Docker Compose v2/v5 は内部で BuildKit / buildx を使う。Colima だけ入れた環境では CLI プラグインが欠けていることがあり、次の症状が出る。
+
+- `Docker Compose requires buildx plugin to be installed`（警告。classic builder に落ちることもある）
+- `BuildKit is enabled but the buildx component is missing or broken`（`docker build` が失敗）
+
+導入例:
+
+```bash
+brew install docker-buildx
+
+# Docker がプラグインを見つけるよう config に追記（未設定なら）
+# ~/.docker/config.json の cliPluginsExtraDirs に次を含める:
+#   "/opt/homebrew/lib/docker/cli-plugins"
+#
+# または互換用 symlink:
+mkdir -p ~/.docker/cli-plugins
+ln -sfn "$(brew --prefix)/lib/docker/cli-plugins/docker-buildx" \
+  ~/.docker/cli-plugins/docker-buildx
+
+docker buildx version   # github.com/docker/buildx ...
+docker compose build    # auth / memo / web が Built になること
+```
 
 ---
 
@@ -235,8 +260,8 @@ npm run dev
 | 症状 | 対処 |
 |------|------|
 | `Unsupported lockfile version '5'` | Auth/Memo の Docker base を `denoland/deno:2.9.2` 以上にする（現行 Dockerfile 済み） |
-| `docker compose build` 失敗 | 同上 + ホストから `docker pull denoland/deno:2.9.2` が通るか確認 |
-| `Docker Compose requires buildx plugin` | 警告のみで classic builder でも動くことが多い。必要なら buildx を導入 |
+| `docker compose build` 失敗 | 同上 + `docker pull denoland/deno:2.9.2` が通るか確認。buildx 欠落なら上記「Colima + buildx」 |
+| `Docker Compose requires buildx plugin` / BuildKit missing | `brew install docker-buildx` と `cliPluginsExtraDirs`（または symlink）。手順は上記 |
 | イメージ pull が DNS timeout | Colima / Docker 側の DNS・ネットワークを確認 |
 | ポート使用中 | `lsof -i :3001 -i :3002 -i :5173 -i :5432` で占有を止めるか、`.env` の `*_PORT` を変更 |
 | ログイン後に Memo が 401 | Cookie + proxy 設定を確認 → [`cookie-and-vite-proxy.md`](./cookie-and-vite-proxy.md) |
