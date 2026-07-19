@@ -1,11 +1,11 @@
 import { createTheme } from "@mui/material/styles";
 
-/** Default MUI theme for the playground FE (light). */
+/** Default MUI theme for the playground FE (dark). */
 export const theme = createTheme({
   palette: {
-    mode: "light",
-    primary: { main: "#1565c0" },
-    secondary: { main: "#6a1b9a" },
+    mode: "dark",
+    primary: { main: "#90caf9" },
+    secondary: { main: "#ce93d8" },
   },
   shape: { borderRadius: 8 },
   typography: {

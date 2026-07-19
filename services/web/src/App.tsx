@@ -97,7 +97,7 @@ export function App() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "grey.50" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <AppBar position="static" elevation={1}>
         <Toolbar sx={{ gap: 1, flexWrap: "wrap" }}>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
