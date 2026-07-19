@@ -74,9 +74,10 @@ npx stryker run stryker.domain.json
 
 - トリガー: PR / `main` / `workflow_dispatch`
 - matrix: `{memo,auth} × {domain,http}` → `npm ci` → `npm run mutate:<target>`
-- artifact: Stryker 出力 `reports/mutation/{domain,http}/`（HTML / JSON）
-- 合否は Stryker `thresholds.break` のみ（自前集計なし）
-- unit CI（`test.yml`）とは分離
+- スコア: `tools/ci/mutation-report.sh` が Job Summary に書き、`mutation-summary` が sticky PR コメントに集約
+- artifact: Stryker 出力 `reports/mutation/{domain,http}/`（HTML / JSON + `*-metrics.json`）
+- 合否は Stryker `thresholds.break`（集計は表示用。ゲートは各ジョブの Stryker）
+- unit CI（`test.yml`）とは分離。unit 側は coverage を同様に Job Summary + sticky PR コメント
 
 ## 限界
 
@@ -93,4 +94,4 @@ survived が増えたらテスト追加が第一選択。
 - `npm ci` 後に `npx stryker --version` で入っているか確認
 - baseline 失敗時は先に `deno task test`
 - `Could not find a matching package for 'npm:…' in the node_modules directory` — 各サービスの `deno.json` に `"nodeModulesDir": "auto"` があること（mutation 用 `package.json` があると Deno が local `node_modules` を要求するため）。無ければ追加するか `deno install` を実行
-- CI のレポート: workflow artifact の HTML / `mutation.json`（Stryker 出力）
+- CI のレポート: PR コメント（`<!-- ci-mutation-scores -->`）+ Job Summary + artifact の HTML / `mutation.json`

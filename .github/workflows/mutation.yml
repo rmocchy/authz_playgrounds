@@ -1,5 +1,5 @@
 # Mutation testing via StrykerJS. Score gate = Stryker thresholds.break.
-# Reports are Stryker HTML/JSON artifacts (no custom metrics glue).
+# Per-job Job Summary + sticky PR comment (aggregated) + HTML/JSON artifacts.
 name: Mutation
 
 on:
@@ -14,6 +14,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   mutate:
@@ -57,6 +58,13 @@ jobs:
             deno-${{ matrix.service }}-${{ runner.os }}-
       - run: npm ci
       - run: npm run mutate:${{ matrix.target }}
+      - name: Mutation score
+        if: always()
+        run: >
+          bash ../../tools/ci/mutation-report.sh
+          ${{ matrix.service }}-${{ matrix.target }}
+          reports/mutation/${{ matrix.target }}/mutation.json
+          reports/mutation/${{ matrix.target }}/${{ matrix.service }}-${{ matrix.target }}-metrics.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -64,3 +72,24 @@ jobs:
           path: services/${{ matrix.service }}/reports/mutation/${{ matrix.target }}/
           if-no-files-found: warn
           retention-days: 14
+
+  mutation-summary:
+    name: Mutation summary
+    needs: [mutate]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download mutation reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-*-${{ github.run_id }}
+          path: metrics-in
+          merge-multiple: false
+      - name: Aggregate
+        run: bash tools/ci/aggregate-metrics.sh "Mutation test scores" metrics-in mutation-summary.md
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash tools/ci/post-pr-comment.sh "<!-- ci-mutation-scores -->" mutation-summary.md
