@@ -43,6 +43,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
           GITLEAKS_ENABLE_COMMENTS: "false"
+          # Align with local brew / documented CLI (action default can lag).
+          GITLEAKS_VERSION: "8.30.1"
 
   deno-tests:
     name: ${{ matrix.name }}

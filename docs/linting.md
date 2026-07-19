@@ -52,7 +52,7 @@ npm run lint:secrets
 
 - デフォルトルール + カスタム:
   - dotenv の `password=` / `token=` / `api_key=` 等
-  - `postgres://user:password@...` 形式
+  - Postgres URL へのパスワード埋め込み
   - Bearer / Authorization っぽい値
 - CI: [`gitleaks/gitleaks-action`](https://github.com/gitleaks/gitleaks-action)（ローカルは CLI）
 - `.env` 本体は `.gitignore` で除外（コミットしない）
