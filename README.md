@@ -8,7 +8,7 @@
 |----------------|-------------------|------|
 | **Auth** | `services/auth` / compose `auth` | **アプリ側の認証認可基盤**。ユーザー・セッション・（将来）認可ハブ。ポート **3001** |
 | **Memo** | `services/memo` / compose `memo` | メモ CRUD + 認可（global / secure）。ポート **3002** |
-| **Web** | `services/web` / compose `web` | Vite FE。ポート **5173** |
+| **Web** | `services/web` / compose `web` | Vite + MUI FE。ポート **5173** |
 | **Postgres** | compose `db` | 単一インスタンス、DB 分割: `auth` / `memo`。ポート **5432** |
 
 設計の詳細: [`projects/first_commit/design.md`](projects/first_commit/design.md)

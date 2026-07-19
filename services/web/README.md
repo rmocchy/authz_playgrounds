@@ -1,12 +1,13 @@
 # Web FE (`services/web`)
 
-Vite + React + TypeScript UI for the Authz Playground.
+Vite + React + TypeScript + **MUI (Material UI)** for the Authz Playground.
 
 - **Login / logout / register** against Auth (`loginId` + password)
 - **Memo** list · create · edit · delete
 - **global / secure** toggles
 - **Readable** tab lists own memos plus other users' global (non-secure) memos
 - Uses **`pkg/api-client`** with relative bases `/api/auth` and `/api/memo`
+- UI: **@mui/material** + Emotion; `ThemeProvider` / `CssBaseline` in `src/main.tsx`
 
 ## Cookie + proxy
 
@@ -68,7 +69,8 @@ services/web/
   index.html
   Dockerfile
   src/
-    main.tsx
+    main.tsx          # ThemeProvider + CssBaseline
+    theme.ts          # MUI createTheme
     App.tsx
     api/client.ts     # createAuthClient/createMemoClient wrappers
     pages/
