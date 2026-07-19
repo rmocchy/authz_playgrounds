@@ -115,7 +115,7 @@
 | 共有ユーティリティ | `pkg/`（必要最小限） | 例: Cookie 名定数、エラー型。**ビジネスロジックは置かない**。`pkg` → `services` 依存は禁止 |
 | **Auth**（認証認可基盤） | `services/auth/` | アプリユーザー、パスワード検証、セッション発行/破棄/検証。将来の認可拡張の受け皿 |
 | Memo API | `services/memo/` | メモ CRUD、メモ認可、Auth へのセッション検証呼び出し |
-| Web FE | `services/web/` | Vite + TypeScript UI |
+| Web FE | `services/web/` | Vite + TypeScript + MUI UI |
 | PostgreSQL | compose サービス `db` | 永続化。DB 分離（下記） |
 | Compose / 開発基盤 | repo ルート | `docker-compose.yml`、`.env.example`、root タスク |
 | **IdP**（将来） | 例: `services/idp/`（未作成） | OIDC/SAML を話す独立 IdP。Auth とは別サービス | 
@@ -507,7 +507,7 @@ updated_at TIMESTAMPTZ NOT NULL
 - [ ] `secure=true` のメモは所有者以外が読めない（`global=true` でも同様）
 - [ ] 未ログインで保護 API を叩くと 401
 - [ ] password が DB に平文で保存されていない
-- [ ] FE は Vite + TypeScript、BE は Deno + TypeScript である
+- [ ] FE は Vite + TypeScript + MUI、BE は Deno + TypeScript である
 - [ ] TypeSpec から生成したクライアント/型を FE またはサービスが利用している
 - [ ] PostgreSQL を使用し、アプリの主要クエリに SafeQL（または Design Doc 更新済みの代替）を用いている
 - [ ] 認可および認証の重要パスに自動テストがあり、mutation テストを実行できる（スコア閾値は初期は緩可）
@@ -602,7 +602,7 @@ updated_at TIMESTAMPTZ NOT NULL
 
 - **Files/components affected:** services/web/
 - **Dependencies:** PR 2, PR 3, PR 4
-- **Description:** Vite + TypeScript FE。proxy（/api/auth → auth, /api/memo → memo）、ログイン/ログアウト、メモ一覧・作成・編集・削除、global/secure トグル、他ユーザー global メモの読取 UI。`pkg/api-client` 利用。Dockerfile。
+- **Description:** Vite + TypeScript + MUI FE。proxy（/api/auth → auth, /api/memo → memo）、ログイン/ログアウト、メモ一覧・作成・編集・削除、global/secure トグル、他ユーザー global メモの読取 UI。`pkg/api-client` 利用。Dockerfile。
 
 ### PR 6: Mutation tests and documentation wrap-up
 

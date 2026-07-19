@@ -1,3 +1,14 @@
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { type FormEvent, useEffect, useState } from "react";
 import { errorMessage, type Memo, memos, type SessionMe } from "../api/client";
 import { MemoFlags } from "../components/MemoFlags";
@@ -76,56 +87,75 @@ function MemoEditForm(props: FormState) {
   } = props;
 
   return (
-    <form onSubmit={onSubmit} className="form">
-      <label>
-        Title
-        <input
+    <Box component="form" onSubmit={onSubmit}>
+      <Stack spacing={2}>
+        <TextField
+          label="Title"
           value={draft.title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={busy || readOnly}
           placeholder="optional"
+          fullWidth
         />
-      </label>
-      <label>
-        Body (Markdown)
-        <textarea
+        <TextField
+          label="Body (Markdown)"
           value={draft.body}
           onChange={(e) => setBody(e.target.value)}
           required={!readOnly}
-          rows={12}
+          multiline
+          minRows={12}
           disabled={busy || readOnly}
           placeholder="# hello"
+          fullWidth
+          slotProps={{
+            input: {
+              sx: {
+                fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
+                fontSize: "0.9rem",
+              },
+            },
+          }}
         />
-      </label>
 
-      <MemoFlags
-        global={draft.global}
-        secure={draft.secure}
-        disabled={busy || readOnly}
-        onChange={({ global: g, secure: s }) => {
-          setGlobal(g);
-          setSecure(s);
-        }}
-      />
+        <MemoFlags
+          global={draft.global}
+          secure={draft.secure}
+          disabled={busy || readOnly}
+          onChange={({ global: g, secure: s }) => {
+            setGlobal(g);
+            setSecure(s);
+          }}
+        />
 
-      {!readOnly && (
-        <div className="row actions">
-          <button type="submit" disabled={busy || (!draft.body && isCreate)}>
-            {busy ? "Saving…" : isCreate ? "Create" : "Save"}
-          </button>
-          {!isCreate && isOwner && (
-            <button
-              type="button"
-              className="danger"
-              disabled={busy}
-              onClick={() => void onDelete()}
+        {!readOnly && (
+          <Stack
+            direction="row"
+            spacing={1}
+            useFlexGap
+            sx={{ flexWrap: "wrap" }}
+          >
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={busy || (!draft.body && isCreate)}
             >
-              Delete
-            </button>
-          )}
-        </div>
-      )}
-    </form>
+              {busy ? "Saving…" : isCreate ? "Create" : "Save"}
+            </Button>
+            {!isCreate && isOwner && (
+              <Button
+                type="button"
+                color="error"
+                variant="outlined"
+                disabled={busy}
+                onClick={() => void onDelete()}
+              >
+                Delete
+              </Button>
+            )}
+          </Stack>
+        )}
+      </Stack>
+    </Box>
   );
 }
 
@@ -215,56 +245,85 @@ export function MemoEditPage({ user, memoId, onDone, onSaved }: Props) {
 
   if (loading) {
     return (
-      <div className="panel">
-        <p className="muted">Loading memo…</p>
-      </div>
+      <Card variant="outlined">
+        <CardContent>
+          <Stack
+            direction="row"
+            spacing={1}
+            useFlexGap
+            sx={{ alignItems: "center" }}
+          >
+            <CircularProgress size={22} />
+            <Typography color="text.secondary">Loading memo…</Typography>
+          </Stack>
+        </CardContent>
+      </Card>
     );
   }
 
   const heading = isCreate ? "New memo" : readOnly ? "View memo" : "Edit memo";
 
   return (
-    <div className="panel">
-      <div className="row between">
-        <h2>{heading}</h2>
-        <button type="button" className="ghost" onClick={onDone}>
-          ← Back
-        </button>
-      </div>
+    <Card variant="outlined">
+      <CardContent>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            mb: 2,
+          }}
+        >
+          <Typography variant="h5" component="h2">
+            {heading}
+          </Typography>
+          <Button variant="text" onClick={onDone}>
+            ← Back
+          </Button>
+        </Stack>
 
-      {readOnly && (
-        <p className="info">
-          You can read this memo (global &amp; non-secure) but only the owner
-          can edit or delete it.
-        </p>
-      )}
+        {readOnly && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            You can read this memo (global &amp; non-secure) but only the owner
+            can edit or delete it.
+          </Alert>
+        )}
 
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} role="alert">
+            {error}
+          </Alert>
+        )}
 
-      <MemoEditForm
-        draft={draft}
-        setTitle={setTitle}
-        setBody={setBody}
-        setGlobal={setGlobal}
-        setSecure={setSecure}
-        busy={busy}
-        readOnly={readOnly}
-        isCreate={isCreate}
-        isOwner={isOwner}
-        onSubmit={(e) => void onSubmit(e)}
-        onDelete={() => void onDelete()}
-      />
+        <MemoEditForm
+          draft={draft}
+          setTitle={setTitle}
+          setBody={setBody}
+          setGlobal={setGlobal}
+          setSecure={setSecure}
+          busy={busy}
+          readOnly={readOnly}
+          isCreate={isCreate}
+          isOwner={isOwner}
+          onSubmit={(e) => void onSubmit(e)}
+          onDelete={() => void onDelete()}
+        />
 
-      {memo && (
-        <p className="meta muted">
-          id {memo.id} · owner {memo.ownerId === user.id ? "you" : memo.ownerId}{" "}
-          · updated {new Date(memo.updatedAt).toLocaleString()}
-        </p>
-      )}
-    </div>
+        {memo && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 2, display: "block" }}
+          >
+            id {memo.id} · owner{" "}
+            {memo.ownerId === user.id ? "you" : memo.ownerId} · updated{" "}
+            {new Date(memo.updatedAt).toLocaleString()}
+          </Typography>
+        )}
+      </CardContent>
+    </Card>
   );
 }

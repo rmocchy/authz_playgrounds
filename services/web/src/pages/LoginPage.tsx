@@ -1,3 +1,15 @@
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { type FormEvent, useState } from "react";
 import type { SessionMe } from "../api/client";
 import { auth, errorMessage } from "../api/client";
@@ -34,70 +46,72 @@ export function LoginPage({ onLoggedIn }: Props) {
   }
 
   return (
-    <div className="panel auth-panel">
-      <h1>Authz Playground</h1>
-      <p className="lede">
-        Local login (not OIDC). Session cookie <code>playground_session</code>{" "}
-        is set by Auth via the Vite proxy.
-      </p>
+    <Card variant="outlined" sx={{ mt: 2 }}>
+      <CardContent>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Authz Playground
+        </Typography>
+        <Typography color="text.secondary" sx={{ mb: 2 }}>
+          Local login (not OIDC). Session cookie{" "}
+          <Box component="code" sx={{ fontSize: "0.9em" }}>
+            playground_session
+          </Box>{" "}
+          is set by Auth via the Vite proxy.
+        </Typography>
 
-      <div className="tabs" role="tablist">
-        <button
-          type="button"
-          className={mode === "login" ? "tab active" : "tab"}
-          onClick={() => setMode("login")}
+        <Tabs
+          value={mode}
+          onChange={(_, v: "login" | "register") => setMode(v)}
+          sx={{ mb: 2 }}
         >
-          Login
-        </button>
-        <button
-          type="button"
-          className={mode === "register" ? "tab active" : "tab"}
-          onClick={() => setMode("register")}
-        >
-          Register
-        </button>
-      </div>
+          <Tab label="Login" value="login" />
+          <Tab label="Register" value="register" />
+        </Tabs>
 
-      <form onSubmit={onSubmit} className="form">
-        <label>
-          Login ID
-          <input
-            autoComplete="username"
-            value={loginId}
-            onChange={(e) => setLoginId(e.target.value)}
-            required
-            minLength={1}
-            disabled={busy}
-          />
-        </label>
-        <label>
-          Password
-          <input
-            type="password"
-            autoComplete={
-              mode === "login" ? "current-password" : "new-password"
-            }
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={1}
-            disabled={busy}
-          />
-        </label>
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
-        {info && <p className="info">{info}</p>}
-        <button type="submit" disabled={busy || !loginId || !password}>
-          {busy
-            ? "Working…"
-            : mode === "login"
-              ? "Log in"
-              : "Register & log in"}
-        </button>
-      </form>
-    </div>
+        <Box component="form" onSubmit={onSubmit}>
+          <Stack spacing={2}>
+            <TextField
+              label="Login ID"
+              autoComplete="username"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              required
+              fullWidth
+              disabled={busy}
+            />
+            <TextField
+              label="Password"
+              type="password"
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              fullWidth
+              disabled={busy}
+            />
+            {error && (
+              <Alert severity="error" role="alert">
+                {error}
+              </Alert>
+            )}
+            {info && <Alert severity="success">{info}</Alert>}
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={busy || !loginId || !password}
+              fullWidth
+            >
+              {busy
+                ? "Working…"
+                : mode === "login"
+                  ? "Log in"
+                  : "Register & log in"}
+            </Button>
+          </Stack>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }
