@@ -20,7 +20,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+      - ./db/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-playground} -d ${POSTGRES_DB:-postgres}"]
       interval: 5s
@@ -29,8 +29,9 @@ services:
 
   auth:
     build:
-      context: ./services/auth
-      dockerfile: Dockerfile
+      # Repo root so Dockerfile can COPY db/migration/auth
+      context: .
+      dockerfile: services/auth/Dockerfile
     container_name: authz-auth
     restart: unless-stopped
     ports:
@@ -63,8 +64,9 @@ services:
 
   memo:
     build:
-      context: ./services/memo
-      dockerfile: Dockerfile
+      # Repo root so Dockerfile can COPY db/migration/memo
+      context: .
+      dockerfile: services/memo/Dockerfile
     container_name: authz-memo
     restart: unless-stopped
     ports:

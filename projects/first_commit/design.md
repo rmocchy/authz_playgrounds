@@ -165,10 +165,14 @@ authz_playgrounds/
 │   └── shared/                  # 定数・小さな型のみ（任意）
 │       └── cookie.ts            # Cookie 名など
 │
-├── infra/                       # compose 補助（任意だが推奨）
-│   └── postgres/
-│       └── init/
-│           └── 01-create-databases.sql   # CREATE DATABASE auth; memo;
+├── db/                          # DB 定義をリポジトリ直下に集約
+│   ├── init/
+│   │   └── 01-create-databases.sql   # CREATE DATABASE auth; memo;
+│   └── migration/
+│       ├── auth/
+│       │   └── 001_init.sql
+│       └── memo/
+│           └── 001_init.sql
 │
 ├── services/
 │   ├── auth/                    # 認証認可基盤（Deno）
@@ -191,8 +195,6 @@ authz_playgrounds/
 │   │   │   │   ├── users.ts     # SafeQL クエリ
 │   │   │   │   └── sessions.ts
 │   │   │   └── generated/       # TypeSpec サーバ側生成物（任意）
-│   │   ├── migrations/
-│   │   │   └── 001_init.sql
 │   │   └── tests/
 │   │       ├── password_test.ts
 │   │       ├── session_test.ts
@@ -217,8 +219,6 @@ authz_playgrounds/
 │   │   │   │   ├── client.ts
 │   │   │   │   └── memos.ts
 │   │   │   └── generated/
-│   │   ├── migrations/
-│   │   │   └── 001_init.sql
 │   │   └── tests/
 │   │       ├── authorize_test.ts
 │   │       └── memos_http_test.ts
@@ -576,7 +576,7 @@ updated_at TIMESTAMPTZ NOT NULL
 
 ### PR 1: Repository foundation (compose, env, skeleton)
 
-- **Files/components affected:** docker-compose.yml, .env.example, .gitignore, README.md, infra/postgres/init/01-create-databases.sql, services/auth/.gitkeep, services/memo/.gitkeep, services/web/.gitkeep, pkg/.gitkeep, specs/.gitkeep, docs/.gitkeep
+- **Files/components affected:** docker-compose.yml, .env.example, .gitignore, README.md, db/init/01-create-databases.sql, services/auth/.gitkeep, services/memo/.gitkeep, services/web/.gitkeep, pkg/.gitkeep, specs/.gitkeep, docs/.gitkeep
 - **Dependencies:** None
 - **Description:** Docker Compose で Postgres（auth/memo 2 DB init）、auth/memo/web サービス骨格、`.env.example`、`.gitignore`、ルート README の起動入口を置く。サービス固有ロジックは入れない。DB 分割とポート案（Auth 3001 / Memo 3002 / Web 5173 / Postgres 5432）を反映する。
 

@@ -92,6 +92,6 @@ deno task check
 
 Built by root `docker-compose.yml` service `memo`. On start:
 
-1. Apply `migrations/*.sql`
+1. Apply `db/migration/memo/*.sql`
 2. Serve on `0.0.0.0:3002`
 3. Calls Auth at `AUTH_BASE_URL` (`http://auth:3001` in compose)
