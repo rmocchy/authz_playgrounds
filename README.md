@@ -91,7 +91,7 @@ cd services/auth && npm run mutate:http
 | `infra/` | compose 補助（Postgres init 等） |
 | `docs/` | 学習メモ・実装後の解説 |
 | `projects/` | 企画・設計（Design Doc） |
-| `tools/` | `generate.sh`（TypeSpec）、`ci/`（mutation 集計） |
+| （生成） | `npm run generate`（TypeSpec → OpenAPI）。CI は Deno / Stryker / gitleaks を直接利用 |
 
 エージェント向けルール: [`AGENTS.md`](AGENTS.md)
 

@@ -1,5 +1,5 @@
 # TypeSpec compiler config for Authz Playground contracts.
-# Run from repo root: ./tools/generate.sh
+# Run from repo root: npm run generate
 # Or: npx tsp compile specs --config specs/tspconfig.yaml
 
 emit:

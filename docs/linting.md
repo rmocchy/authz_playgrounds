@@ -11,7 +11,7 @@
 | Auth / Memo `src/` | **ESLint** | サイズ・複雑度・記法衛生・レイヤ境界 |
 | Web | **Biome** | フォーマット + 厳しめ lint（a11y 含む） |
 | 全般 | **EditorConfig** | IDE 間の indent / EOL |
-| 秘密情報 | **gitleaks** + tracked `.env` 検査 | 鍵・トークン・dotenv の混入 |
+| 秘密情報 | **gitleaks**（CLI / GitHub Action） | 鍵・トークン・dotenv の混入 |
 
 設定:
 
@@ -19,7 +19,7 @@
 - `biome.json` — Web
 - 各 `services/*/deno.json` · `pkg/api-client/deno.json` — fmt/lint オプション
 - `.editorconfig`
-- `.gitleaks.toml` · `tools/ci/secret-scan.sh` — secret scan
+- `.gitleaks.toml` · `npm run lint:secrets`（gitleaks CLI）
 
 ## 実行（リポジトリルート）
 
@@ -37,24 +37,25 @@ npm run lint         # lint のみ（fmt check なし）
 | `lint:deno` | `deno lint` |
 | `lint:eslint` | サイズ・複雑度・boundaries 等 |
 | `lint:web` | `biome check` |
-| `lint:secrets` | gitleaks + 追跡された `.env` 禁止 |
+| `lint:secrets` | gitleaks（`.gitleaks.toml`） |
 | `lint:all` | CI 相当の一括（secrets 含む） |
 
 ## Secret scan
 
 ```bash
-# 要: gitleaks（推奨）または Docker
+# 要: gitleaks on PATH
 brew install gitleaks   # macOS
 npm run lint:secrets
 ```
 
-検査内容:
+検査内容（`.gitleaks.toml`）:
 
-1. **git に `.env` が追跡されていないこと**（`.env.example` のみ可）
-2. **gitleaks** デフォルトルール + カスタム:
-   - dotenv の `password=` / `token=` / `api_key=` 等
-   - `postgres://user:password@...` 形式
-   - Bearer / Authorization っぽい値
+- デフォルトルール + カスタム:
+  - dotenv の `password=` / `token=` / `api_key=` 等
+  - Postgres URL へのパスワード埋め込み
+  - Bearer / Authorization っぽい値
+- CI: [`gitleaks/gitleaks-action`](https://github.com/gitleaks/gitleaks-action)（ローカルは CLI）
+- `.env` 本体は `.gitignore` で除外（コミットしない）
 
 allowlist（`.gitleaks.toml`）:
 
@@ -85,4 +86,4 @@ allowlist（`.gitleaks.toml`）:
 
 ## CI
 
-[`.github/workflows/test.yml`](../.github/workflows/test.yml) の **Lint** job が `fmt:deno:check` · `lint:deno` · `lint:eslint` · `lint:web` · `lint:secrets` を実行する。
+[`.github/workflows/test.yml`](../.github/workflows/test.yml) の **Lint** job が `fmt:deno:check` · `lint:deno` · `lint:eslint` · `lint:web` · gitleaks-action を実行する。
