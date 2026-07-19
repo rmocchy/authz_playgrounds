@@ -43,8 +43,8 @@ docker compose up --build
 
 CI:
 
-- Unit / strict lint: [`.github/workflows/test.yml`](.github/workflows/test.yml) — typecheck / test / build に加え `deno fmt` · `deno lint` · ESLint · Biome · **gitleaks（secret scan）**
-- Mutation: [`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) — StrykerJS
+- Unit / strict lint / **coverage**: [`.github/workflows/test.yml`](.github/workflows/test.yml) — typecheck / test（`--coverage`）/ build + `deno fmt` · `deno lint` · ESLint · Biome · gitleaks。Job Summary + PR コメント + HTML/LCOV artifact
+- Mutation: [`.github/workflows/mutation.yml`](.github/workflows/mutation.yml) — StrykerJS（score を Job Summary + PR コメント + artifact）
 
 `docker compose build` はイメージ取得が重いため CI では回さず、手元確認とする（手順: [`docs/local-setup.md`](docs/local-setup.md)）。
 

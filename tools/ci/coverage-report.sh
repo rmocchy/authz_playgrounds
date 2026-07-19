@@ -24,8 +24,17 @@ if [[ ! -d "$cov_dir" ]]; then
   exit 0
 fi
 
-# Table to stdout (also used for parsing). --html is already emitted by
-# `deno test --coverage` in recent Deno; re-print for step summary.
+# Ensure HTML + LCOV exist for artifacts (Deno 2 often emits them during
+# `deno test --coverage`, but regenerate if missing / older CLI).
+if [[ ! -d "${cov_dir}/html" ]]; then
+  NO_COLOR=1 deno coverage --html "${cov_dir}" >/dev/null 2>&1 || true
+fi
+if [[ ! -f "${cov_dir}/lcov.info" ]]; then
+  NO_COLOR=1 deno coverage --lcov --output="${cov_dir}/lcov.info" "${cov_dir}" \
+    >/dev/null 2>&1 || true
+fi
+
+# Table to stdout (also used for parsing) + step summary.
 # NO_COLOR / strip ANSI: Deno may colorize percentages in the table.
 report="$(NO_COLOR=1 deno coverage "$cov_dir" 2>/dev/null || true)"
 if [[ -z "$report" ]]; then

@@ -1,4 +1,4 @@
-# Unit / typecheck / strict lint (Deno fmt+lint, ESLint, Biome, gitleaks) for Auth, Memo, Web, api-client.
+# Unit / typecheck / coverage / strict lint for Auth, Memo, Web, and api-client.
 # Mutation (StrykerJS) runs in a separate workflow: .github/workflows/mutation.yml
 name: Test
 
@@ -13,6 +13,7 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   lint:
@@ -79,8 +80,22 @@ jobs:
             deno-auth-${{ runner.os }}-
       - name: Typecheck
         run: deno task check
-      - name: Test
-        run: deno task test
+      - name: Test with coverage
+        run: deno test -A --coverage=coverage tests/
+      - name: Coverage report
+        if: always()
+        run: bash ../../tools/ci/coverage-report.sh auth coverage coverage-metrics.json
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-auth-${{ github.run_id }}
+          path: |
+            services/auth/coverage/html/
+            services/auth/coverage/lcov.info
+            services/auth/coverage-metrics.json
+          if-no-files-found: warn
+          retention-days: 14
 
   memo:
     name: Memo (Deno tests)
@@ -103,8 +118,22 @@ jobs:
             deno-memo-${{ runner.os }}-
       - name: Typecheck
         run: deno task check
-      - name: Test
-        run: deno task test
+      - name: Test with coverage
+        run: deno test -A --coverage=coverage tests/
+      - name: Coverage report
+        if: always()
+        run: bash ../../tools/ci/coverage-report.sh memo coverage coverage-metrics.json
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-memo-${{ github.run_id }}
+          path: |
+            services/memo/coverage/html/
+            services/memo/coverage/lcov.info
+            services/memo/coverage-metrics.json
+          if-no-files-found: warn
+          retention-days: 14
 
   api-client:
     name: api-client (Deno)
@@ -116,8 +145,22 @@ jobs:
           deno-version: v2.x
       - name: Check
         run: deno check --config pkg/api-client/deno.json pkg/api-client/mod.ts
-      - name: Test
-        run: deno test -A --config pkg/api-client/deno.json pkg/api-client/
+      - name: Test with coverage
+        run: deno test -A --config pkg/api-client/deno.json --coverage=pkg/api-client/coverage pkg/api-client/
+      - name: Coverage report
+        if: always()
+        run: bash tools/ci/coverage-report.sh api-client pkg/api-client/coverage pkg/api-client/coverage-metrics.json
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-api-client-${{ github.run_id }}
+          path: |
+            pkg/api-client/coverage/html/
+            pkg/api-client/coverage/lcov.info
+            pkg/api-client/coverage-metrics.json
+          if-no-files-found: warn
+          retention-days: 14
 
   web:
     name: Web (typecheck + build + lint)
@@ -144,3 +187,24 @@ jobs:
       - name: Build
         working-directory: services/web
         run: npm run build
+
+  coverage-summary:
+    name: Coverage summary
+    needs: [auth, memo, api-client]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download coverage metrics
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*-${{ github.run_id }}
+          path: metrics-in
+          merge-multiple: true
+      - name: Aggregate
+        run: bash tools/ci/aggregate-metrics.sh "Test coverage" metrics-in coverage-summary.md
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash tools/ci/post-pr-comment.sh "<!-- ci-test-coverage -->" coverage-summary.md
