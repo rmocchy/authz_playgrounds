@@ -3,8 +3,7 @@
 TypeScript HTTP client for Auth and Memo APIs.
 
 - **Contracts (source of truth):** TypeSpec in `doc/`
-- **Generated:** OpenAPI at `doc/openapi/openapi.yaml` via
-  `npm run generate`
+- **Generated:** OpenAPI at `doc/openapi/openapi.yaml` via `npm run generate`
 - **This package:** Hand-synced Deno/browser-friendly fetch client matching the
   contract (not a TypeSpec emitter output)
 
