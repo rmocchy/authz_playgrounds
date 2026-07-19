@@ -6,7 +6,7 @@
 
 - 詳細ルールは `.grok/rules/` を読むこと（常時ロードされる）
 - **新規タスクは新しい branch を切り、実装・動作確認は worktree 上で行う**（人間の明示指示があればそれに従う）。詳細は `.grok/rules/branch-and-worktree.md`
-- 秘密情報（鍵・トークン・パスワード）をコミットしない。検出: **`npm run lint:secrets`**（gitleaks + tracked `.env` 禁止）
+- 秘密情報（鍵・トークン・パスワード）をコミットしない。検出: **`npm run lint:secrets`**（gitleaks CLI）/ CI は `gitleaks/gitleaks-action`
 - 外部の実在システムへの攻撃・exploit 実装は禁止
 - 意図的な脆弱実装には、ファイル先頭または該当箇所に学習目的である旨を明示する
 

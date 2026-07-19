@@ -4,8 +4,8 @@
   "private": true,
   "description": "Authz learning playground — TypeSpec contracts and shared tooling",
   "scripts": {
-    "generate": "bash tools/generate.sh",
-    "tsp:compile": "tsp compile specs --config specs/tspconfig.yaml",
+    "generate": "tsp compile specs --config specs/tspconfig.yaml",
+    "tsp:compile": "npm run generate",
     "fmt": "npm run fmt:deno && npm run fmt:web",
     "fmt:deno": "deno fmt services/auth/src services/auth/tests services/memo/src services/memo/tests pkg/api-client",
     "fmt:deno:check": "deno fmt --check services/auth/src services/auth/tests services/memo/src services/memo/tests pkg/api-client",
@@ -15,7 +15,7 @@
     "lint:deno": "deno lint services/auth services/memo && deno lint --config pkg/api-client/deno.json pkg/api-client",
     "lint:eslint": "eslint services/auth/src services/memo/src",
     "lint:web": "biome check services/web",
-    "lint:secrets": "bash tools/ci/secret-scan.sh",
+    "lint:secrets": "gitleaks detect --source=. --config=.gitleaks.toml --verbose --redact --exit-code=1",
     "lint:size": "npm run lint:eslint",
     "lint:architecture": "npm run lint:eslint",
     "lint:all": "npm run fmt:deno:check && npm run lint && npm run fmt:web:check"

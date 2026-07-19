@@ -4,7 +4,7 @@ TypeScript HTTP client for Auth and Memo APIs.
 
 - **Contracts (source of truth):** TypeSpec in `specs/`
 - **Generated:** OpenAPI at `specs/tsp-output/openapi/openapi.yaml` via
-  `./tools/generate.sh` / `npm run generate`
+  `npm run generate`
 - **This package:** Hand-synced Deno/browser-friendly fetch client matching the
   contract (not a TypeSpec emitter output)
 
@@ -46,11 +46,8 @@ Memo/server-side callers may forward via
 ## Regenerate OpenAPI
 
 ```bash
-./tools/generate.sh
-# or
 npm run generate
-# or
-bash tools/generate.sh
+# or: npx tsp compile specs --config specs/tspconfig.yaml
 ```
 
 After TypeSpec changes, update types/paths in this package if they diverge.\
