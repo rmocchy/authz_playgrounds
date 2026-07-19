@@ -1,5 +1,6 @@
 # Unit / typecheck / coverage / strict lint for Auth, Memo, Web, and api-client.
 # Mutation (StrykerJS) runs in a separate workflow: .github/workflows/mutation.yml
+# Coverage: per-job Job Summary + sticky PR comment (aggregated) + HTML/LCOV artifacts.
 name: Test
 
 on:
@@ -13,7 +14,7 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   lint:
@@ -62,6 +63,9 @@ jobs:
             test: deno test -A --coverage=coverage tests/
             cov_dir: coverage
             cov_root: services/auth/coverage
+            label: auth
+            report: bash ../../tools/ci/coverage-report.sh auth coverage coverage/auth-metrics.json
+            metrics: services/auth/coverage/auth-metrics.json
             artifact: coverage-auth
           - name: Memo (Deno tests)
             workdir: services/memo
@@ -72,6 +76,9 @@ jobs:
             test: deno test -A --coverage=coverage tests/
             cov_dir: coverage
             cov_root: services/memo/coverage
+            label: memo
+            report: bash ../../tools/ci/coverage-report.sh memo coverage coverage/memo-metrics.json
+            metrics: services/memo/coverage/memo-metrics.json
             artifact: coverage-memo
           - name: api-client (Deno)
             workdir: .
@@ -82,6 +89,9 @@ jobs:
             test: deno test -A --config pkg/api-client/deno.json --coverage=pkg/api-client/coverage pkg/api-client/
             cov_dir: pkg/api-client/coverage
             cov_root: pkg/api-client/coverage
+            label: api-client
+            report: bash tools/ci/coverage-report.sh api-client pkg/api-client/coverage pkg/api-client/coverage/api-client-metrics.json
+            metrics: pkg/api-client/coverage/api-client-metrics.json
             artifact: coverage-api-client
     defaults:
       run:
@@ -101,11 +111,9 @@ jobs:
         run: ${{ matrix.check }}
       - name: Test with coverage
         run: ${{ matrix.test }}
-      - name: Coverage report (Deno built-in)
+      - name: Coverage report
         if: always()
-        run: |
-          NO_COLOR=1 deno coverage --html --lcov --output="${{ matrix.cov_dir }}/lcov.info" "${{ matrix.cov_dir }}" || true
-          NO_COLOR=1 deno coverage "${{ matrix.cov_dir }}" >> "$GITHUB_STEP_SUMMARY" || true
+        run: ${{ matrix.report }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -113,6 +121,7 @@ jobs:
           path: |
             ${{ matrix.cov_root }}/html/
             ${{ matrix.cov_root }}/lcov.info
+            ${{ matrix.metrics }}
           if-no-files-found: warn
           retention-days: 14
 
@@ -136,3 +145,24 @@ jobs:
         working-directory: services/web
       - run: npm run build
         working-directory: services/web
+
+  coverage-summary:
+    name: Coverage summary
+    needs: [deno-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download coverage metrics
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*-${{ github.run_id }}
+          path: metrics-in
+          merge-multiple: false
+      - name: Aggregate
+        run: bash tools/ci/aggregate-metrics.sh "Test coverage" metrics-in coverage-summary.md
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash tools/ci/post-pr-comment.sh "<!-- ci-test-coverage -->" coverage-summary.md
