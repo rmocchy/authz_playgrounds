@@ -24,10 +24,11 @@
 ## 実行（リポジトリルート）
 
 ```bash
-npm install          # ESLint / Biome
-npm run lint:all     # fmt check + deno lint + ESLint + Biome
+npm install          # ESLint / Biome + git hooks 有効化（prepare）
+npm run lint:all     # fmt check + deno lint + ESLint + Biome + secrets
 npm run fmt          # 自動整形（deno + biome write）
 npm run lint         # lint のみ（fmt check なし）
+npm run hooks:install # hooks だけ再設定（clone 後に npm install していない場合）
 ```
 
 | script | 内容 |
@@ -39,6 +40,27 @@ npm run lint         # lint のみ（fmt check なし）
 | `lint:web` | `biome check` |
 | `lint:secrets` | gitleaks（`.gitleaks.toml`） |
 | `lint:all` | CI 相当の一括（secrets 含む） |
+| `hooks:install` / `prepare` | `core.hooksPath=.githooks` を設定 |
+
+## pre-commit（commit 時に自動実行）
+
+`git commit` のたびに [`.githooks/pre-commit`](../.githooks/pre-commit) が **`npm run lint:all`** を実行する（記法・静的解析・**secret scan**）。失敗するとコミットは作成されない。
+
+前提:
+
+| 依存 | 用途 |
+|------|------|
+| `npm install`（ルート） | ESLint / Biome + hooksPath 設定 |
+| `gitleaks` on PATH | `lint:secrets`（`brew install gitleaks`） |
+
+有効化確認:
+
+```bash
+git config --get core.hooksPath   # → .githooks
+ls -l .githooks/pre-commit        # 実行ビット付き
+```
+
+緊急時のみ（エージェントは使わない）: `SKIP_LINT_HOOK=1 git commit ...` または `git commit --no-verify`。
 
 ## Secret scan
 

@@ -4,6 +4,8 @@
   "private": true,
   "description": "Authz learning playground — TypeSpec contracts and shared tooling",
   "scripts": {
+    "prepare": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath .githooks || true",
+    "hooks:install": "git config core.hooksPath .githooks && python3 -c \"import os,stat; p='.githooks/pre-commit'; os.chmod(p, os.stat(p).st_mode | 0o111)\" && echo \"hooksPath=$(git config --get core.hooksPath)\"",
     "generate": "tsp compile doc --config doc/tspconfig.yaml",
     "tsp:compile": "npm run generate",
     "fmt": "npm run fmt:deno && npm run fmt:web",
