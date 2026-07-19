@@ -10,12 +10,13 @@ import { createHandler } from "./app.ts";
 import { hashPassword } from "./domain/password.ts";
 
 async function resolveMigrationsDir(): Promise<string> {
-  // Prefer CWD/migrations (Docker WORKDIR /app), then relative to this module.
+  // Prefer CWD/migrations (Docker WORKDIR /app copies db/migration/auth here),
+  // then repo-relative db/migration/auth from this module (services/auth/src).
   const moduleDir = new URL(".", import.meta.url).pathname;
   const candidates = [
     `${Deno.cwd()}/migrations`,
-    // src/ → service root migrations/
-    `${moduleDir}../../migrations`.replace(/\/+/g, "/"),
+    // src/ → repo root → db/migration/auth
+    `${moduleDir}../../../db/migration/auth`.replace(/\/+/g, "/"),
   ];
   // Normalize .. segments for file URL path
   const normalized = candidates.map((p) => {

@@ -9,10 +9,13 @@ import { createAuthClient } from "./clients/auth.ts";
 import { createHandler } from "./app.ts";
 
 async function resolveMigrationsDir(): Promise<string> {
+  // Prefer CWD/migrations (Docker WORKDIR /app copies db/migration/memo here),
+  // then repo-relative db/migration/memo from this module (services/memo/src).
   const moduleDir = new URL(".", import.meta.url).pathname;
   const candidates = [
     `${Deno.cwd()}/migrations`,
-    `${moduleDir}../../migrations`.replace(/\/+/g, "/"),
+    // src/ → repo root → db/migration/memo
+    `${moduleDir}../../../db/migration/memo`.replace(/\/+/g, "/"),
   ];
   const normalized = candidates.map((p) => {
     try {

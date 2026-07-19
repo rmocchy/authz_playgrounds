@@ -1,5 +1,5 @@
 -- Memo DB schema
--- Applied on service startup (see src/repository/client.ts migrate).
+-- Applied on Memo service startup (services/memo → runMigrations).
 -- owner_id is a logical FK to Auth users (no cross-DB physical FK).
 
 CREATE TABLE IF NOT EXISTS memos (

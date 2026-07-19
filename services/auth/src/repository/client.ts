@@ -20,7 +20,7 @@ export function createSql(databaseUrl: string): Sql {
 
 /**
  * Apply SQL migration files in order (idempotent via IF NOT EXISTS).
- * Reads files from the migrations directory next to the service root.
+ * Source of truth: `db/migration/auth/` (Docker image copies them to /app/migrations).
  */
 export async function runMigrations(
   sql: Sql,
