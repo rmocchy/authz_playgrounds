@@ -2,7 +2,7 @@
  * @module pkg/api-client
  *
  * Deno- and browser-friendly HTTP client for Authz Playground APIs.
- * Contracts are defined in TypeSpec (`specs/`) and emitted to OpenAPI;
+ * Contracts are defined in TypeSpec (`doc/`) and emitted to OpenAPI;
  * this client is maintained to match that contract (see tools/generate.sh).
  *
  * Session cookie: `playground_session` — use credentials: 'include' (default).

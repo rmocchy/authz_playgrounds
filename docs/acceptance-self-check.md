@@ -29,7 +29,7 @@
 
 - [ ] FE は Vite + TypeScript（`services/web`）
 - [ ] BE は Deno + TypeScript（`services/auth`, `services/memo`）
-- [ ] TypeSpec 契約（`specs/`）と `pkg/api-client` を FE またはサービスが利用している
+- [ ] TypeSpec 契約（`doc/`）と `pkg/api-client` を FE またはサービスが利用している
 - [ ] PostgreSQL を使用している（SafeQL 未配線の場合は各サービス README のフォールバック説明がある）
 
 ## テスト・ドキュメント・秘密情報

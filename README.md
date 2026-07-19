@@ -87,7 +87,7 @@ cd services/auth && npm run mutate:http
 |------|------|
 | `services/` | 各サービス実装（auth / memo / web） |
 | `pkg/` | サービス横断の共有（生成クライアント等） |
-| `specs/` | TypeSpec 契約 |
+| `doc/` | TypeSpec 契約・生成 OpenAPI |
 | `infra/` | compose 補助（Postgres init 等） |
 | `docs/` | 学習メモ・実装後の解説 |
 | `projects/` | 企画・設計（Design Doc） |

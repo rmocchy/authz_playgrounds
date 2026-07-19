@@ -66,5 +66,5 @@ description = "Lockfiles and generated OpenAPI noise"
 paths = [
   '''package-lock\.json$''',
   '''deno\.lock$''',
-  '''specs/tsp-output/''',
+  '''doc/openapi/''',
 ]

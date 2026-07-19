@@ -1,6 +1,6 @@
 /**
- * Types matching TypeSpec contracts in `specs/`.
- * Source of truth: specs/*.tsp → OpenAPI at specs/tsp-output/openapi/openapi.yaml
+ * Types matching TypeSpec contracts in `doc/`.
+ * Source of truth: doc/*.tsp → OpenAPI at doc/openapi/openapi.yaml
  *
  * Session cookie name: `playground_session` (HttpOnly; Path=/; SameSite=Lax).
  */
