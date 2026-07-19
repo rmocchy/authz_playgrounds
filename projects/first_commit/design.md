@@ -167,10 +167,14 @@ authz_playgrounds/
 │   └── shared/                  # 定数・小さな型のみ（任意）
 │       └── cookie.ts            # Cookie 名など
 │
-├── infra/                       # compose 補助（任意だが推奨）
-│   └── postgres/
-│       └── init/
-│           └── 01-create-databases.sql   # CREATE DATABASE auth; memo;
+├── db/                          # DB 定義をリポジトリ直下に集約
+│   ├── init/
+│   │   └── 01-create-databases.sql   # CREATE DATABASE auth; memo;
+│   └── migration/
+│       ├── auth/
+│       │   └── 001_init.sql
+│       └── memo/
+│           └── 001_init.sql
 │
 ├── services/
 │   ├── auth/                    # 認証認可基盤（Deno）
@@ -193,8 +197,6 @@ authz_playgrounds/
 │   │   │   │   ├── users.ts     # SafeQL クエリ
 │   │   │   │   └── sessions.ts
 │   │   │   └── generated/       # TypeSpec サーバ側生成物（任意）
-│   │   ├── migrations/
-│   │   │   └── 001_init.sql
 │   │   └── tests/
 │   │       ├── password_test.ts
 │   │       ├── session_test.ts
@@ -219,8 +221,6 @@ authz_playgrounds/
 │   │   │   │   ├── client.ts
 │   │   │   │   └── memos.ts
 │   │   │   └── generated/
-│   │   ├── migrations/
-│   │   │   └── 001_init.sql
 │   │   └── tests/
 │   │       ├── authorize_test.ts
 │   │       └── memos_http_test.ts
@@ -244,9 +244,7 @@ authz_playgrounds/
 │           └── components/
 │               └── MemoFlags.tsx  # global / secure トグル
 │
-└── tools/                       # 任意
-    ├── generate.sh              # TypeSpec → pkg/api-client
-    └── mutate.sh                # mutation テスト起動
+└── （生成）                       # `npm run generate` → TypeSpec (`doc/`) → OpenAPI (`doc/openapi/`)
 ```
 
 #### 配置ルール（要約）
@@ -578,15 +576,15 @@ updated_at TIMESTAMPTZ NOT NULL
 
 ### PR 1: Repository foundation (compose, env, skeleton)
 
-- **Files/components affected:** docker-compose.yml, .env.example, .gitignore, README.md, infra/postgres/init/01-create-databases.sql, services/auth/.gitkeep, services/memo/.gitkeep, services/web/.gitkeep, pkg/.gitkeep, doc/.gitkeep, docs/.gitkeep
+- **Files/components affected:** docker-compose.yml, .env.example, .gitignore, README.md, db/init/01-create-databases.sql, services/auth/.gitkeep, services/memo/.gitkeep, services/web/.gitkeep, pkg/.gitkeep, doc/.gitkeep, docs/.gitkeep
 - **Dependencies:** None
 - **Description:** Docker Compose で Postgres（auth/memo 2 DB init）、auth/memo/web サービス骨格、`.env.example`、`.gitignore`、ルート README の起動入口を置く。サービス固有ロジックは入れない。DB 分割とポート案（Auth 3001 / Memo 3002 / Web 5173 / Postgres 5432）を反映する。
 
 ### PR 2: TypeSpec contracts and generated api-client
 
-- **Files/components affected:** doc/main.tsp, doc/tspconfig.yaml, doc/common/errors.tsp, doc/auth/auth.tsp, doc/auth/sessions.tsp, doc/memo/memos.tsp, pkg/api-client/, tools/generate.sh, package.json (optional root generate scripts)
+- **Files/components affected:** doc/main.tsp, doc/tspconfig.yaml, doc/common/errors.tsp, doc/auth/auth.tsp, doc/auth/sessions.tsp, doc/memo/memos.tsp, pkg/api-client/, package.json (`npm run generate`)
 - **Dependencies:** PR 1
-- **Description:** Auth（register/login/logout/sessions/me）と Memo CRUD の HTTP 契約を TypeSpec で定義し、generator で `pkg/api-client` に TS クライアント/型を生成してコミットする。生成手順を `tools/generate.sh` に固定する。
+- **Description:** Auth（register/login/logout/sessions/me）と Memo CRUD の HTTP 契約を TypeSpec で定義し、OpenAPI を `doc/openapi/` に emit する。`pkg/api-client` は契約に合わせて手同期し、生成は `npm run generate` で行う。
 
 ### PR 3: Auth service (users, sessions, password hash)
 

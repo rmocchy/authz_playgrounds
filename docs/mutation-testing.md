@@ -73,10 +73,9 @@ npx stryker run stryker.domain.json
 [`.github/workflows/mutation.yml`](../.github/workflows/mutation.yml)
 
 - トリガー: PR / `main` / `workflow_dispatch`
-- ジョブ: memo-domain / memo-http / auth-domain / auth-http
-- 各ジョブ: `working-directory: services/<svc>` → `npm ci` → `npm run mutate:…` → スコア集計
-- artifact: `services/<svc>/reports/mutation/{domain,http}/`（HTML / JSON / metrics、失敗時も upload）
-- **Job Summary** と PR コメント（sticky）に mutation score を表示（`tools/ci/mutation-report.sh` / `aggregate-metrics.sh`）
+- matrix: `{memo,auth} × {domain,http}` → `npm ci` → `npm run mutate:<target>`
+- artifact: Stryker 出力 `reports/mutation/{domain,http}/`（HTML / JSON）
+- 合否は Stryker `thresholds.break` のみ（自前集計なし）
 - unit CI（`test.yml`）とは分離
 
 ## 限界
@@ -94,4 +93,4 @@ survived が増えたらテスト追加が第一選択。
 - `npm ci` 後に `npx stryker --version` で入っているか確認
 - baseline 失敗時は先に `deno task test`
 - `Could not find a matching package for 'npm:…' in the node_modules directory` — 各サービスの `deno.json` に `"nodeModulesDir": "auto"` があること（mutation 用 `package.json` があると Deno が local `node_modules` を要求するため）。無ければ追加するか `deno install` を実行
-- CI のスコア表示: `tools/ci/mutation-report.sh` / `aggregate-metrics.sh` / `post-pr-comment.sh`（Job Summary + sticky PR コメント）
+- CI のレポート: workflow artifact の HTML / `mutation.json`（Stryker 出力）

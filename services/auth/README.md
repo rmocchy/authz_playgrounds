@@ -75,6 +75,6 @@ deno task check
 
 Built by root `docker-compose.yml` service `auth`. On start:
 
-1. Apply `migrations/*.sql`
+1. Apply `db/migration/auth/*.sql`
 2. Optional seed
 3. Serve on `0.0.0.0:3001`

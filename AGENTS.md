@@ -5,8 +5,8 @@
 ## 必須
 
 - 詳細ルールは `.grok/rules/` を読むこと（常時ロードされる）
-- **新規タスクは新しい branch を切り、実装・動作確認は worktree 上で行う**（人間の明示指示があればそれに従う）。詳細は `.grok/rules/branch-and-worktree.md`
-- 秘密情報（鍵・トークン・パスワード）をコミットしない。検出: **`npm run lint:secrets`**（gitleaks + tracked `.env` 禁止）
+- **新規タスクは新しい branch を切り、実装・動作確認は worktree 上で行う**。作業終了後は **必ず push と PR 作成**（確認待ちにしない。人間の明示指示があればそれに従う）。詳細は `.grok/rules/branch-and-worktree.md`
+- 秘密情報（鍵・トークン・パスワード）をコミットしない。検出: **`npm run lint:secrets`**（gitleaks CLI）/ CI は `gitleaks/gitleaks-action`
 - 外部の実在システムへの攻撃・exploit 実装は禁止
 - 意図的な脆弱実装には、ファイル先頭または該当箇所に学習目的である旨を明示する
 
@@ -17,6 +17,7 @@
 | `services/` | 各サービス実装（Auth / Memo / 将来の IdP・RP など） |
 | `pkg/` | サービス横断の共有ライブラリ |
 | `doc/` | TypeSpec 契約・生成 OpenAPI（`doc/openapi/`） |
+| `db/` | Postgres init（`db/init`）と migration（`db/migration/{auth,memo}`） |
 | `docs/` | 学習メモ・実装後の解説（Design Doc の置き場ではない） |
 | `projects/` | 企画・設計（`draft.md` / `prd.md` / **`design.md`**）。トピックごとにサブディレクトリ |
 

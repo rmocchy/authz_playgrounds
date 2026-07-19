@@ -62,6 +62,12 @@ paths = [
 ]
 
 [[allowlists]]
+description = "Documentation example of postgres URL shape (not a real credential)"
+regexes = [
+  '''postgres://user:password@''',
+]
+
+[[allowlists]]
 description = "Lockfiles and generated OpenAPI noise"
 paths = [
   '''package-lock\.json$''',

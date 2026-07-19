@@ -13,7 +13,7 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: write
+  pull-requests: read
 
 jobs:
   lint:
@@ -22,7 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Full history so gitleaks can scan commits for leaked credentials.
           fetch-depth: 0
       - uses: denoland/setup-deno@v2
         with:
@@ -32,137 +31,88 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: package-lock.json
-      - name: Install root tooling
-        run: npm ci
-      - name: Install gitleaks CLI
+      - run: npm ci
+      - run: npm run fmt:deno:check
+      - run: npm run lint:deno
+      - run: npm run lint:eslint
+      - run: npm run lint:web
+      # gitleaks/gitleaks-action — personal public repos need no GITLEAKS_LICENSE.
+      # Config: .gitleaks.toml (GITLEAKS_CONFIG). Local: npm run lint:secrets (CLI).
+      - uses: gitleaks/gitleaks-action@v2
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+          GITLEAKS_ENABLE_COMMENTS: "false"
+          # Align with local brew / documented CLI (action default can lag).
           GITLEAKS_VERSION: "8.30.1"
+
+  deno-tests:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Auth (Deno tests)
+            workdir: services/auth
+            cache_key: deno-auth
+            lock: services/auth/deno.lock
+            conf: services/auth/deno.json
+            check: deno task check
+            test: deno test -A --coverage=coverage tests/
+            cov_dir: coverage
+            cov_root: services/auth/coverage
+            artifact: coverage-auth
+          - name: Memo (Deno tests)
+            workdir: services/memo
+            cache_key: deno-memo
+            lock: services/memo/deno.lock
+            conf: services/memo/deno.json
+            check: deno task check
+            test: deno test -A --coverage=coverage tests/
+            cov_dir: coverage
+            cov_root: services/memo/coverage
+            artifact: coverage-memo
+          - name: api-client (Deno)
+            workdir: .
+            cache_key: deno-api-client
+            lock: pkg/api-client/deno.lock
+            conf: pkg/api-client/deno.json
+            check: deno check --config pkg/api-client/deno.json pkg/api-client/mod.ts
+            test: deno test -A --config pkg/api-client/deno.json --coverage=pkg/api-client/coverage pkg/api-client/
+            cov_dir: pkg/api-client/coverage
+            cov_root: pkg/api-client/coverage
+            artifact: coverage-api-client
+    defaults:
+      run:
+        working-directory: ${{ matrix.workdir }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/deno
+          key: ${{ matrix.cache_key }}-${{ runner.os }}-${{ hashFiles(matrix.lock, matrix.conf) }}
+          restore-keys: |
+            ${{ matrix.cache_key }}-${{ runner.os }}-
+      - name: Typecheck
+        run: ${{ matrix.check }}
+      - name: Test with coverage
+        run: ${{ matrix.test }}
+      - name: Coverage report (Deno built-in)
+        if: always()
         run: |
-          set -euo pipefail
-          arch="$(uname -m)"
-          case "${arch}" in
-            x86_64)  gl_arch=x64 ;;
-            aarch64|arm64) gl_arch=arm64 ;;
-            *) echo "unsupported arch: ${arch}"; exit 1 ;;
-          esac
-          # Install to a user-writable dir (not /usr/local/bin, which is root-owned).
-          install_dir="${HOME}/.local/bin"
-          mkdir -p "${install_dir}"
-          url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_${gl_arch}.tar.gz"
-          curl -sSfL "${url}" | tar -xz -C "${install_dir}" gitleaks
-          echo "${install_dir}" >> "${GITHUB_PATH}"
-          "${install_dir}/gitleaks" version
-      - name: Deno format check
-        run: npm run fmt:deno:check
-      - name: Deno lint
-        run: npm run lint:deno
-      - name: ESLint (backend strict)
-        run: npm run lint:eslint
-      - name: Biome (web)
-        run: npm run lint:web
-      - name: Secret scan (gitleaks + tracked .env guard)
-        run: npm run lint:secrets
-
-  auth:
-    name: Auth (Deno tests)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: services/auth
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
+          NO_COLOR=1 deno coverage --html --lcov --output="${{ matrix.cov_dir }}/lcov.info" "${{ matrix.cov_dir }}" || true
+          NO_COLOR=1 deno coverage "${{ matrix.cov_dir }}" >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          deno-version: v2.x
-      - name: Cache Deno dependencies
-        uses: actions/cache@v4
-        with:
+          name: ${{ matrix.artifact }}-${{ github.run_id }}
           path: |
-            ~/.cache/deno
-          key: deno-auth-${{ runner.os }}-${{ hashFiles('services/auth/deno.lock', 'services/auth/deno.json') }}
-          restore-keys: |
-            deno-auth-${{ runner.os }}-
-      - name: Typecheck
-        run: deno task check
-      - name: Test with coverage
-        run: deno test -A --coverage=coverage tests/
-      - name: Coverage report
-        if: always()
-        run: bash ../../tools/ci/coverage-report.sh auth coverage coverage/auth-metrics.json
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-auth-${{ github.run_id }}
-          path: |
-            services/auth/coverage/html/
-            services/auth/coverage/lcov.info
-            services/auth/coverage/auth-metrics.json
-          if-no-files-found: warn
-          retention-days: 14
-
-  memo:
-    name: Memo (Deno tests)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: services/memo
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-      - name: Cache Deno dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/deno
-          key: deno-memo-${{ runner.os }}-${{ hashFiles('services/memo/deno.lock', 'services/memo/deno.json') }}
-          restore-keys: |
-            deno-memo-${{ runner.os }}-
-      - name: Typecheck
-        run: deno task check
-      - name: Test with coverage
-        run: deno test -A --coverage=coverage tests/
-      - name: Coverage report
-        if: always()
-        run: bash ../../tools/ci/coverage-report.sh memo coverage coverage/memo-metrics.json
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-memo-${{ github.run_id }}
-          path: |
-            services/memo/coverage/html/
-            services/memo/coverage/lcov.info
-            services/memo/coverage/memo-metrics.json
-          if-no-files-found: warn
-          retention-days: 14
-
-  api-client:
-    name: api-client (Deno)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-      - name: Check
-        run: deno check --config pkg/api-client/deno.json pkg/api-client/mod.ts
-      - name: Test with coverage
-        run: deno test -A --config pkg/api-client/deno.json --coverage=pkg/api-client/coverage pkg/api-client/
-      - name: Coverage report
-        if: always()
-        run: bash tools/ci/coverage-report.sh api-client pkg/api-client/coverage pkg/api-client/coverage/api-client-metrics.json
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-api-client-${{ github.run_id }}
-          path: |
-            pkg/api-client/coverage/html/
-            pkg/api-client/coverage/lcov.info
-            pkg/api-client/coverage/api-client-metrics.json
+            ${{ matrix.cov_root }}/html/
+            ${{ matrix.cov_root }}/lcov.info
           if-no-files-found: warn
           retention-days: 14
 
@@ -178,37 +128,11 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             services/web/package-lock.json
-      - name: Install root (Biome)
-        run: npm ci
-      - name: Install web
+      - run: npm ci
+      - run: npm ci
         working-directory: services/web
-        run: npm ci
-      - name: Biome
-        run: npm run lint:web
-      - name: Typecheck
+      - run: npm run lint:web
+      - run: npm run check
         working-directory: services/web
-        run: npm run check
-      - name: Build
+      - run: npm run build
         working-directory: services/web
-        run: npm run build
-
-  coverage-summary:
-    name: Coverage summary
-    needs: [auth, memo, api-client]
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download coverage metrics
-        uses: actions/download-artifact@v4
-        with:
-          pattern: coverage-*-${{ github.run_id }}
-          path: metrics-in
-          merge-multiple: false
-      - name: Aggregate
-        run: bash tools/ci/aggregate-metrics.sh "Test coverage" metrics-in coverage-summary.md
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash tools/ci/post-pr-comment.sh "<!-- ci-test-coverage -->" coverage-summary.md

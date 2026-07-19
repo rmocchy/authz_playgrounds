@@ -19,6 +19,7 @@ export function createSql(databaseUrl: string): Sql {
 
 /**
  * Apply SQL migration files in order (idempotent via IF NOT EXISTS).
+ * Source of truth: `db/migration/memo/` (Docker image copies them to /app/migrations).
  */
 export async function runMigrations(
   sql: Sql,

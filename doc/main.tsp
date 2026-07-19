@@ -7,7 +7,7 @@
  *
  * Session cookie: playground_session (HttpOnly; Path=/; SameSite=Lax)
  *
- * Generate: `./tools/generate.sh` or `npm run generate` (or `npx tsp compile doc`)
+ * Generate: `npm run generate` (or `npx tsp compile doc`)
  * Generated output: OpenAPI under `doc/openapi/`
  * Hand-synced client: `pkg/api-client/` (Deno-friendly fetch wrappers; update when paths/shapes change)
  */
